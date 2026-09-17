@@ -8,9 +8,8 @@ namespace miit::algebra {
      */
     class RandomGenerator final : public Generator {
     private:
-        std::mt19937 engine_;                            /**< Генератор псевдослучайных чисел Mersenne Twister */
-        std::uniform_int_distribution<int> distribution_; /**< Равномерное распределение целых чисел */
-
+        std::mt19937 engine_;                            
+        std::uniform_int_distribution<int> distribution_; 
     public:
         /**
          * @brief Конструктор через границы диапазона

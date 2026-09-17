@@ -8,8 +8,14 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+
 using namespace miit::algebra;
 
+/**
+ * @brief Считывает значение из стандартного ввода с повторной попыткой при ошибке
+ * @param prompt - текст к вводу
+ * @return считанное значение типа T
+ */
 template<typename T>
 T readValue(const char* prompt) {
     for (;;) {
@@ -23,6 +29,10 @@ T readValue(const char* prompt) {
     }
 }
 
+/**
+ * @brief Точка входа в демонстрационную программу
+ * @return код возврата (0 - успех, 1 - ошибка)
+ */
 int main() {
     try {
         std::size_t rows = 0U;
@@ -74,7 +84,8 @@ int main() {
             }
             if (action < 1 || action > 3) std::cout << "Unknown action\n";
         }
-    } catch (const std::exception& error) {
+    }
+    catch (const std::exception& error) {
         std::cerr << "Error: " << error.what() << '\n';
         return 1;
     }

@@ -1,126 +1,122 @@
-﻿#pragma once
+#pragma once
 
 #include <cstddef>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace miit::algebra {
 
-    // Forward declaration
     class Generator;
 
     /**
-     * @brief Шаблонный класс для работы с двумерными матрицами
-     * @tparam T - тип элементов матрицы
+     * @brief Шаблонный класс двумерной матрицы
      */
     template<typename T>
     class Matrix {
     private:
-        std::vector<std::vector<T>> data_; /**< Двумерный вектор для хранения элементов матрицы */
+        std::vector<std::vector<T>> data_;
 
         /**
-         * @brief Проверяет, что матрица прямоугольная (все строки одинаковой длины)
-         * @throws std::invalid_argument Если строки имеют разную длину
+         * @brief Проверяет корректность прямоугольной матрицы
+         * @return true, если все строки одинаковой длины
          */
-        void validateRectangular() const;
+        bool isValidRectangular() const;
 
     public:
         /**
-         * @brief Конструктор по умолчанию. Создает пустую матрицу
+         * @brief Конструктор по умолчанию
          */
         Matrix() = default;
 
         /**
-         * @brief Конструктор с указанием размеров и начального значения
+         * @brief Конструктор через размеры и значение
          * @param rows - количество строк
          * @param columns - количество столбцов
-         * @param value - начальное значение для всех элементов (по умолчанию T{})
+         * @param value - значение по умолчанию для всех элементов
          */
         Matrix(std::size_t rows, std::size_t columns, const T& value = T{});
 
         /**
-         * @brief Конструктор из двумерного вектора
-         * @param values - двумерный вектор с данными
-         * @throws std::invalid_argument Если матрица не прямоугольная
+         * @brief Конструктор через двумерный вектор
+         * @param values - двумерный вектор значений
          */
         explicit Matrix(const std::vector<std::vector<T>>& values);
 
         /**
-         * @brief Конструктор копирования (по умолчанию)
+         * @brief Конструктор копирования
          * @param other - другой объект Matrix
          */
-        Matrix(const Matrix& other) = default;
+        Matrix(const Matrix& other);
 
         /**
-         * @brief Конструктор перемещения (по умолчанию)
+         * @brief Конструктор перемещения
          * @param other - другой объект Matrix
          */
-        Matrix(Matrix&& other) noexcept = default;
+        Matrix(Matrix&& other) noexcept;
 
         /**
-         * @brief Деструктор (по умолчанию)
+         * @brief Деструктор
          */
         ~Matrix() = default;
 
         /**
-         * @brief Оператор присваивания копированием (по умолчанию)
+         * @brief Оператор присваивания (копирование)
          * @param other - другой объект Matrix
-         * @return Ссылка на текущий объект
+         * @return ссылка на текущий объект
          */
-        Matrix& operator=(const Matrix& other) = default;
+        Matrix& operator=(const Matrix& other);
 
         /**
-         * @brief Оператор присваивания перемещением (по умолчанию)
+         * @brief Оператор присваивания (перемещение)
          * @param other - другой объект Matrix
-         * @return Ссылка на текущий объект
+         * @return ссылка на текущий объект
          */
-        Matrix& operator=(Matrix&& other) noexcept = default;
+        Matrix& operator=(Matrix&& other) noexcept;
 
         /**
-         * @brief Оператор доступа к строке по индексу (неконстантный)
+         * @brief Оператор доступа к строке по индексу
          * @param row - индекс строки
-         * @return Ссылка на вектор-строку
-         * @throws std::out_of_range Если индекс выходит за пределы
+         * @return ссылка на вектор-строку
          */
         std::vector<T>& operator[](std::size_t row);
 
         /**
          * @brief Оператор доступа к строке по индексу (константный)
          * @param row - индекс строки
-         * @return Константная ссылка на вектор-строку
-         * @throws std::out_of_range Если индекс выходит за пределы
+         * @return константная ссылка на вектор-строку
          */
         const std::vector<T>& operator[](std::size_t row) const;
 
         /**
          * @brief Оператор циклического сдвига строк влево
-         * @param positions - количество позиций для сдвига
-         * @return Новая матрица со сдвинутыми строками
+         * @param positions - количество позиций сдвига
+         * @return новая матрица со сдвинутыми строками
          */
         Matrix operator<<(std::size_t positions) const;
 
         /**
          * @brief Оператор циклического сдвига строк вправо
-         * @param positions - количество позиций для сдвига
-         * @return Новая матрица со сдвинутыми строками
+         * @param positions - количество позиций сдвига
+         * @return новая матрица со сдвинутыми строками
          */
         Matrix operator>>(std::size_t positions) const;
 
         /**
          * @brief Возвращает количество строк
-         * @return Количество строк
+         * @return количество строк
          */
         std::size_t rows() const noexcept;
 
         /**
          * @brief Возвращает количество столбцов
-         * @return Количество столбцов
+         * @return количество столбцов
          */
         std::size_t columns() const noexcept;
 
         /**
          * @brief Проверяет, является ли матрица пустой
-         * @return true если матрица пустая, false в противном случае
+         * @return true, если матрица пустая
          */
         bool empty() const noexcept;
 
@@ -132,42 +128,53 @@ namespace miit::algebra {
 
         /**
          * @brief Вставляет строку в указанную позицию
-         * @param index - индекс позиции для вставки
+         * @param index - индекс позиции вставки
          * @param row - вставляемая строка
-         * @throws std::out_of_range Если индекс выходит за пределы
-         * @throws std::invalid_argument Если размер строки не соответствует матрице
          */
         void insertRow(std::size_t index, const std::vector<T>& row);
 
         /**
          * @brief Удаляет строку по индексу
          * @param index - индекс удаляемой строки
-         * @throws std::out_of_range Если индекс выходит за пределы
          */
         void removeRow(std::size_t index);
 
         /**
          * @brief Вставляет столбец в указанную позицию
-         * @param index - индекс позиции для вставки
+         * @param index - индекс позиции вставки
          * @param column - вставляемый столбец
-         * @throws std::logic_error Если матрица пустая
-         * @throws std::out_of_range Если индекс выходит за пределы
-         * @throws std::invalid_argument Если размер столбца не соответствует матрице
          */
         void insertColumn(std::size_t index, const std::vector<T>& column);
 
         /**
          * @brief Удаляет столбец по индексу
          * @param index - индекс удаляемого столбца
-         * @throws std::out_of_range Если индекс выходит за пределы
          */
         void removeColumn(std::size_t index);
 
         /**
-         * @brief Преобразует матрицу в строку
-         * @return Строковое представление матрицы
+         * @brief Сериализация в строку
+         * @return строковое представление матрицы
          */
         std::string toString() const;
+
+        /**
+         * @brief Оператор вывода в поток
+         * @param os - выходной поток
+         * @param matrix - объект Matrix
+         * @return ссылка на поток
+         */
+        template<typename U>
+        friend std::ostream& operator<<(std::ostream& os, const Matrix<U>& matrix);
+
+        /**
+         * @brief Оператор ввода из потока
+         * @param is - входной поток
+         * @param matrix - объект Matrix
+         * @return ссылка на поток
+         */
+        template<typename U>
+        friend std::istream& operator>>(std::istream& is, Matrix<U>& matrix);
     };
 
-} // namespace miit::algebra
+}

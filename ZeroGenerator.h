@@ -1,8 +1,16 @@
 #pragma once
 #include "Generator.h"
+
 namespace miit::algebra {
-class ZeroGenerator final : public Generator {
-public:
-    int generate() override;
-};
+    /**
+     * @brief Генератор, возвращающий ноль
+     */
+    class ZeroGenerator final : public Generator {
+    public:
+        /**
+         * @brief Возвращает ноль
+         * @return ноль
+         */
+        int generate() override;
+    };
 }

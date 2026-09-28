@@ -7,7 +7,20 @@
 
 namespace miit::algebra {
 
+    // ============================================================
+    // Конструкторы
+    // ============================================================
+
+    Task2::Task2(const Matrix<int>& mat) : Exercise(mat) {}
+
     void Task2::solve() {
+        insertFirstRowAfterOddRows();
+    }
+
+    /**
+     * @brief Реализация задания 2
+     */
+    void Task2::insertFirstRowAfterOddRows() {
         const size_t rows = matrix.getRows();
 
         if (rows == 0) {

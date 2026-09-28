@@ -10,10 +10,23 @@
 namespace miit::algebra {
 
     // ============================================================
+    // Конструкторы
+    // ============================================================
+
+    Task1::Task1(const Matrix<int>& mat) : Exercise(mat) {}
+
+    // ============================================================
     // Публичные методы
     // ============================================================
 
     void Task1::solve() {
+        replaceFirstThreeColumnsWithSquares();
+    }
+
+    /**
+     * @brief Реализация задания 1
+     */
+    void Task1::replaceFirstThreeColumnsWithSquares() {
         checkMatrixNotEmpty();
 
         const size_t cols = matrix.getCols();

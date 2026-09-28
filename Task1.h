@@ -10,12 +10,21 @@ namespace miit::algebra {
      */
     class Task1 : public Exercise {
     public:
-        Task1() = default;
+        /**
+         * @brief Конструктор с матрицей
+         * @param mat матрица, над которой выполняется задание
+         */
+        explicit Task1(const Matrix<int>& mat);
 
         /**
          * @brief Выполняет задание: возводит элементы первых трех столбцов в квадрат
          */
         void solve() override;
+
+        /**
+         * @brief Задание 1: заменить все элементы первых трех столбцов на их квадраты
+         */
+        void replaceFirstThreeColumnsWithSquares();
 
         /**
          * @brief Возвращает описание задания

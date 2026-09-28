@@ -23,18 +23,6 @@ namespace miit::algebra {
          * @return константное значение
          */
         int generate() override;
-
-        /**
-         * @brief Устанавливает новое константное значение
-         * @param value новое значение
-         */
-        void setValue(const int value);
-
-        /**
-         * @brief Возвращает текущее константное значение
-         * @return текущее значение
-         */
-        int getValue() const;
     };
 
 } // namespace miit::algebra

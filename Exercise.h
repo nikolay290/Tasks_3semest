@@ -24,7 +24,7 @@ namespace miit::algebra {
          * @brief Конструктор через матрицу
          * @param matrix матрица, над которой выполняется задание
          */
-        explicit Exercise(Matrix<int> matrix);
+        explicit Exercise(const Matrix<int> matrix);
 
         /**
          * @brief Деструктор

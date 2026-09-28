@@ -10,12 +10,21 @@ namespace miit::algebra {
      */
     class Task2 : public Exercise {
     public:
-        Task2() = default;
+        /**
+         * @brief Конструктор с матрицей
+         * @param mat матрица, над которой выполняется задание
+         */
+        explicit Task2(const Matrix<int>& mat);
 
         /**
          * @brief Выполняет задание: вставляет копию первой строки после каждой нечетной строки
          */
         void solve() override;
+
+        /**
+         * @brief Задание 2: вставить копию первой строки после каждой нечетной строки
+         */
+        void insertFirstRowAfterOddRows();
 
         /**
          * @brief Возвращает описание задания

@@ -28,8 +28,7 @@ enum class FillMethod {
 
 size_t getSize(const std::string& message);
 FillMethod getChoice();
-void demonstrateExercise(Exercise& exercise, const Matrix<int>& original,
-    const std::string& taskName);
+void demonstrateExercise(Exercise& exercise, const std::string& taskName);
 
 int main() {
 #ifdef _WIN32
@@ -91,11 +90,11 @@ int main() {
         std::cout << "\nСозданная матрица:\n";
         std::cout << matrix.toString() << "\n";
 
-        Task1 task1;
-        demonstrateExercise(task1, matrix, "Задание 1");
+        Task1 task1(matrix);
+        demonstrateExercise(task1, "Задание 1");
 
-        Task2 task2;
-        demonstrateExercise(task2, matrix, "Задание 2");
+        Task2 task2(matrix);
+        demonstrateExercise(task2, "Задание 2");
 
         std::cout << "=============================================\n";
         std::cout << "  Дополнительная демонстрация (из задания 4.3)\n";
@@ -106,13 +105,17 @@ int main() {
         std::cout << "\nИсходная матрица:\n";
         std::cout << copyMatrix.toString() << "\n";
 
-        copyMatrix.replaceFirstThreeColumnsWithSquares();
+        // Задание 1 выполняется через класс Task1 (матрица передаётся в конструктор)
+        Task1 squareTask(copyMatrix);
+        squareTask.solve();
+        copyMatrix = squareTask.getMatrix();
         std::cout << "После замены первых трех столбцов на квадраты:\n";
         std::cout << copyMatrix.toString() << "\n";
 
-        Matrix<int> insertedMatrix = matrix.insertFirstRowAfterOddRows();
+        Task2 insertTask(matrix);
+        insertTask.solve();
         std::cout << "После вставки первой строки после каждой нечетной:\n";
-        std::cout << insertedMatrix.toString() << "\n";
+        std::cout << insertTask.getMatrix().toString() << "\n";
 
     }
     catch (const std::exception& e) {
@@ -147,15 +150,13 @@ FillMethod getChoice() {
     std::cin >> choice;
     return static_cast<FillMethod>(choice);
 }
-void demonstrateExercise(Exercise& exercise, const Matrix<int>& original,
-    const std::string& taskName) {
+void demonstrateExercise(Exercise& exercise, const std::string& taskName) {
     std::cout << "\n=== " << taskName << " ===\n";
     std::cout << "Описание: " << exercise.getDescription() << "\n\n";
 
     std::cout << "Исходная матрица:\n";
-    std::cout << original.toString() << "\n";
+    std::cout << exercise.getMatrix().toString() << "\n";
 
-    exercise.setMatrix(original);
     exercise.solve();
 
     std::cout << "Результат:\n";

@@ -1,35 +1,60 @@
-#pragma once
+/**
+ * @file Task2.cpp
+ * @brief Реализация класса Task2
+ */
 
-#include "Exercise.h"
-#include <string>
+#include "Task2.h"
 
 namespace miit::algebra {
 
+    // ============================================================
+    // Конструкторы
+    // ============================================================
+
+    Task2::Task2(const Matrix<int>& mat) : Exercise(mat) {}
+
+    void Task2::solve() {
+        insertFirstRowAfterOddRows();
+    }
+
     /**
-     * @brief Задание 2: вставить после каждой нечетной строки первую строку
+     * @brief Реализация задания 2
      */
-    class Task2 : public Exercise {
-    public:
-        /**
-         * @brief Конструктор с матрицей
-         * @param mat матрица, над которой выполняется задание
-         */
-        explicit Task2(const Matrix<int>& mat);
+    void Task2::insertFirstRowAfterOddRows() {
+        const size_t rows = matrix.getRows();
 
-        /**
-         * @brief Выполняет задание: вставляет копию первой строки после каждой нечетной строки
-         */
-        void solve() override;
+        if (rows == 0) {
+            return;
+        }
 
-        /**
-         * @brief Задание 2: вставить копию первой строки после каждой нечетной строки
-         */
-        void insertFirstRowAfterOddRows();
+        // Количество нечетных строк (нумерация с 1): ceil(rows / 2)
+        const size_t copies = (rows + 1) / 2;
 
-        /**
-         * @brief Возвращает описание задания
-         */
-        std::string getDescription() const override;
-    };
+        // Собираем новую матрицу: каждая исходная строка,
+        // а после каждой нечетной — копия первой строки
+        Matrix<int> result(rows + copies, matrix.getCols());
+
+        size_t out = 0;
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < matrix.getCols(); ++j) {
+                result[out][j] = matrix[i][j];
+            }
+            ++out;
+
+            // После строки с нечетным номером (индексы 0, 2, 4, ...)
+            if ((i + 1) % 2 == 1) {
+                for (size_t j = 0; j < matrix.getCols(); ++j) {
+                    result[out][j] = matrix[0][j];
+                }
+                ++out;
+            }
+        }
+
+        matrix = result;
+    }
+
+    std::string Task2::getDescription() const {
+        return "Вставить первую строку после каждой нечетной строки";
+    }
 
 } // namespace miit::algebra

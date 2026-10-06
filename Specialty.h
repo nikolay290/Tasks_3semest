@@ -39,7 +39,7 @@ public:
      * @return true, если группа добавлена; false, если уже была зарегистрирована.
      * @throws std::invalid_argument если @p group равен nullptr.
      */
-    bool AddGroup(Group* group);
+    bool AddGroup(const Group* group);
 
     /** @brief Возвращает группы, обучающиеся на этой специальности. */
     const std::vector<Group*>& GetGroups() const;

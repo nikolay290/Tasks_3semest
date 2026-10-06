@@ -19,7 +19,7 @@ namespace FormatUtils {
      * @param value Значение для форматирования.
      * @return Отформатированная строка.
      */
-    std::string FormatDecimal(double value);
+    std::string FormatDecimal(const double value);
 
     /**
      * @brief Регистронезависимое сравнение двух строк в кодировке UTF-8.

@@ -100,9 +100,9 @@ public:
      *       University - их владелец и обновляет их список групп, поэтому
      *       константность здесь была бы фиктивной.
      */
-    std::shared_ptr<Lesson> AddLesson(LessonType type, const Discipline* discipline,
-        const Group* group, Teacher* teacher, Teacher* secondTeacher,
-        const std::string& room, Date date);
+    std::shared_ptr AddLesson(const LessonType type, const Discipline* discipline,
+        const Group* group, const Teacher* teacher, const Teacher* secondTeacher,
+        const std::string& room, const Date date);
 
     // ---- Общий доступ ----
 

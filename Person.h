@@ -29,7 +29,7 @@ public:
      * @param birthDate  Дата рождения.
      * @throws std::invalid_argument если ФИО пустое.
      */
-    Person(std::string fullName, Date birthDate);
+    Person(const std::string fullName, const Date birthDate);
 
     /** @brief Виртуальный деструктор, необходим для полиморфных базовых классов. */
     virtual ~Person() = default;

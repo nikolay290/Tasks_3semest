@@ -47,8 +47,8 @@ public:
      * @throws std::invalid_argument если данные некорректны или зачётная
      *         книжка уже есть в группе.
      */
-    std::shared_ptr<Student> AddStudent(const std::string& fullName, Date birthDate,
-        const std::string& recordBook, unsigned course);
+    std::shared_ptr<Student> AddStudent(const std::string& fullName, const Date birthDate,
+        const std::string& recordBook, const unsigned course);
 
     /** @brief Возвращает студентов группы. */
     const std::vector<std::shared_ptr<Student>>& GetStudents() const;

@@ -30,7 +30,7 @@ public:
      * @throws std::invalid_argument если ФИО или должность пустые,
      *         либо @p department равен nullptr.
      */
-    Teacher(const std::string& fullName, Date birthDate, const std::string& position,
+    Teacher(const std::string& fullName, const Date birthDate, const std::string& position,
         const std::string& degree, const Department* department);
 
     /** @brief Возвращает должность. */

@@ -83,7 +83,7 @@ namespace FormatUtils {
         }
     }
 
-    std::string FormatDecimal(double value) {
+    std::string FormatDecimal(const double value) {
         // Округляем до сотых и печатаем целую и дробную части раздельно,
         // чтобы избежать отрицательного нуля и обхода через потоки.
         long long cents = static_cast<long long>(std::llround(value * 100.0));

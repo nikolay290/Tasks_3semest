@@ -30,8 +30,7 @@ public:
      * @param specialty Специальность, на которой обучается группа.
      * @throws std::invalid_argument если номер пуст или @p specialty равен nullptr.
      */
-    Group(const std::string& number, Specialty* specialty);
-
+    Group(const std::string& number, const Specialty* specialty);
     /** @brief Возвращает номер группы. */
     const std::string& GetNumber() const;
 

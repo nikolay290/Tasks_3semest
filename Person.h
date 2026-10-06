@@ -98,7 +98,7 @@ public:
     bool operator==(const Person& other) const;
     /** @brief Сравнение на неравенство, отрицание operator==.
     * @param other Человек, с которым сравнивается текущий объект.
-    *@return true, если @p other отличается от текущего объекта по ФИО
+    *@return true, если введённая информация о студенте отличается от текущего объекта по ФИО
     *или по дате рождения; false, если оба поля совпадают.
     */
     bool operator!=(const Person& other) const;

@@ -47,7 +47,7 @@ public:
      * @param mark Оценка по пятибалльной шкале.
      * @throws std::invalid_argument если оценка вне диапазона 1..5.
      */
-    void AddMark(double mark);
+     void AddMark(const double mark);
 
     /**
      * @brief Возвращает средний балл студента.

@@ -53,8 +53,8 @@ public:
      *         - для не-лабораторной задан второй преподаватель;
      *         - второй преподаватель совпадает с основным.
      */
-    Lesson(LessonType type, const Discipline* discipline, const Group* group,
-        const Teacher* teacher, const Teacher* secondTeacher, const std::string& room, Date date);
+     Lesson(const LessonType type, const Discipline* discipline, const Group* group,
+        const Teacher* teacher, const Teacher* secondTeacher, const std::string& room, const Date date);
 
     /** @brief Возвращает вид занятия. */
     LessonType GetType() const;

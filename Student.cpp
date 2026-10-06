@@ -40,7 +40,7 @@ const Group* Student::GetGroup() const {
     return group_;
 }
 
-void Student::AddMark(double mark) {
+void Student::AddMark(const double mark) {
     if (mark < 1.0 || mark > 5.0) {
         throw std::invalid_argument("Student: оценка должна быть в диапазоне от 1 до 5");
     }

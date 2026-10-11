@@ -45,7 +45,7 @@ size_t Department::GetDisciplineCount() const {
     return disciplines_.size();
 }
 
-bool Department::AddTeacher(Teacher* teacher) {
+bool Department::AddTeacher(const Teacher& teacher) {
     if (teacher == nullptr) {
         throw std::invalid_argument("Department: преподаватель не может быть nullptr");
     }
@@ -56,7 +56,7 @@ bool Department::AddTeacher(Teacher* teacher) {
     return true;
 }
 
-const std::vector<Teacher*>& Department::GetTeachers() const {
+const std::vector& Department::GetTeachers() const {
     return teachers_;
 }
 

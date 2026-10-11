@@ -32,12 +32,12 @@ const std::string& Group::GetNumber() const {
     return number_;
 }
 
-const Specialty* Group::GetSpecialty() const {
+const Specialty& GetSpecialty() const {
     return specialty_;
 }
 
-std::shared_ptr<Student> Group::AddStudent(const std::string& fullName, Date birthDate,
-    const std::string& recordBook, unsigned course)
+Student& AddStudent(const std::string& fullName, const Date birthDate,
+    const std::string& recordBook, unsigned course);
 {
     if (FormatUtils::Trim(fullName).empty()) {
         throw std::invalid_argument("Group: ФИО студента не может быть пустым");
@@ -51,7 +51,7 @@ std::shared_ptr<Student> Group::AddStudent(const std::string& fullName, Date bir
     return student;
 }
 
-const std::vector<std::shared_ptr<Student>>& Group::GetStudents() const {
+const std::deque<Student>& GetStudents() const {
     return students_;
 }
 

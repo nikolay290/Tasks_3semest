@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <stdexcept>
 
-Teacher::Teacher(const std::string& fullName, Date birthDate, const std::string& position,
-    const std::string& degree, const Department* department)
+Teacher(const std::string& fullName, const Date& birthDate, const std::string& position,
+    const std::string& degree, const Department& department);
     : Person(fullName, birthDate)
     , position_(position)
     , degree_(degree)
@@ -38,7 +38,7 @@ const Department* Teacher::GetDepartment() const {
     return department_;
 }
 
-bool Teacher::AddGroup(const Group* group) {
+bool AddGroup(const Group& group) {
     if (group == nullptr) {
         throw std::invalid_argument("Teacher: группа не может быть nullptr");
     }

@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 
-Date::Date(int year, int month, int day)
+Date::Date(const int year, const int month, const int day)
     : year_(year)
     , month_(month)
     , day_(day)
@@ -130,7 +130,7 @@ bool Date::operator>=(const Date& other) const {
     return !(*this < other);
 }
 
-void Date::Validate(int year, int month, int day) {
+void Date::Validate(const int year, const int month, const int day) {
     if (month < 1 || month > 12) {
         throw std::invalid_argument("Date: месяц вне диапазона 1..12");
     }
@@ -139,7 +139,7 @@ void Date::Validate(int year, int month, int day) {
     }
 }
 
-int Date::DaysInMonth(int year, int month) {
+int Date::DaysInMonth(const int year, const int month) {
     static const int kDays[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     if (month == 2 && IsLeapYear(year)) {
         return 29;
@@ -147,6 +147,6 @@ int Date::DaysInMonth(int year, int month) {
     return kDays[month - 1];
 }
 
-bool Date::IsLeapYear(int year) {
+bool Date::IsLeapYear(const int year) {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }

@@ -30,8 +30,8 @@ public:
      * @throws std::invalid_argument если ФИО или должность пустые,
      *         либо @p department равен nullptr.
      */
-    Teacher(const std::string& fullName, const Date birthDate, const std::string& position,
-        const std::string& degree, const Department* department);
+    Teacher(const std::string& fullName, const Date& birthDate, const std::string& position,
+        const std::string& degree, const Department& department);
 
     /** @brief Возвращает должность. */
     const std::string& GetPosition() const;
@@ -49,17 +49,17 @@ public:
      * @return true, если группа добавлена; false, если она уже была в списке.
      * @throws std::invalid_argument если @p group равен nullptr.
      */
-    bool AddGroup(const Group* group);
+    bool AddGroup(const Group& group);
 
     /** @brief Возвращает группы, в которых преподаватель ведёт занятия. */
-    const std::vector<const Group*>& GetGroups() const;
+    const std::vector& GetGroups() const;
 
     /**
      * @brief Проверяет, ведёт ли преподаватель занятия в указанной группе.
      * @param group Проверяемая группа.
      * @return true, если @p group есть в списке групп преподавателя.
      */
-    bool TeachesInGroup(const Group* group) const;
+    bool TeachesInGroup(const Group& group) const;
 
     /** @brief Возвращает true, если преподаватель является преподавателем. */
     bool IsTeacher() const override;
@@ -84,6 +84,6 @@ protected:
 private:
     std::string position_;
     std::string degree_;
-    const Department* department_;
-    std::vector<const Group*> groups_;
+    Department department_;
+    std::vector groups_;
 };

@@ -39,10 +39,10 @@ public:
      * @return true, если группа добавлена; false, если уже была зарегистрирована.
      * @throws std::invalid_argument если @p group равен nullptr.
      */
-    bool AddGroup(const Group* group);
+    bool AddGroup(const Group& group);
 
     /** @brief Возвращает группы, обучающиеся на этой специальности. */
-    const std::vector<Group*>& GetGroups() const;
+    const std::vector& GetGroups() const;
 
     /** @brief Возвращает количество обучающихся групп. */
     size_t GetGroupCount() const;
@@ -59,5 +59,5 @@ public:
 private:
     std::string code_;
     std::string name_;
-    std::vector<Group*> groups_;
+    std::vector groups_;
 };

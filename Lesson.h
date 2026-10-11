@@ -60,19 +60,19 @@ public:
     LessonType GetType() const;
 
     /** @brief Возвращает дисциплину занятия. */
-    const Discipline* GetDiscipline() const;
+    const Discipline& GetDiscipline() const;
 
     /** @brief Возвращает группу-участника. */
-    const Group* GetGroup() const;
+    const Group& GetGroup() const;
 
     /** @brief Возвращает основного преподавателя. */
-    const Teacher* GetTeacher() const;
+    const Teacher& GetTeacher() const;
 
     /** @brief Возвращает второго преподавателя (nullptr, если его нет). */
-    const Teacher* GetSecondTeacher() const;
+    const Teacher& GetSecondTeacher() const;
 
     /** @brief Возвращает основного и (если есть) второго преподавателя. */
-    std::vector<const Teacher*> GetTeachers() const;
+    std::vector GetTeachers() const;
 
     /** @brief Возвращает число преподавателей занятия (1 или 2). */
     size_t GetTeacherCount() const;
@@ -89,7 +89,7 @@ public:
      * @param teacher Проверяемый преподаватель.
      * @return true, если @p teacher ведёт это занятие.
      */
-    bool IsTaughtBy(const Teacher* teacher) const;
+    bool IsTaughtBy(const Teacher& teacher) const;
 
     /** @brief Возвращает краткое представление: "вид: дисциплина". */
     std::string GetShortInfo() const;
@@ -106,14 +106,13 @@ private:
      * @brief Проверяет корректность связки занятия.
      * @throws std::invalid_argument при нарушении доменных правил.
      */
-    static void Validate(LessonType type, const Discipline* discipline, const Group* group,
-        const Teacher* teacher, const Teacher* secondTeacher);
+    static void Validate(const LessonType type, const Discipline& discipline, const Group& group,
+        const Teacher& teacher, const Teacher& secondTeacher);
 
     LessonType type_;
-    const Discipline* discipline_;
-    const Group* group_;
-    const Teacher* teacher_;
-    const Teacher* secondTeacher_;
+    Discipline discipline_;
+    Group group_;
+    Group group_;
     std::string room_;
     Date date_;
 };

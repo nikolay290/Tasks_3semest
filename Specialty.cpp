@@ -30,7 +30,7 @@ const std::string& Specialty::GetName() const {
     return name_;
 }
 
-bool Specialty::AddGroup(const Group* group) {
+bool AddGroup(const Group& group) {
     if (group == nullptr) {
         throw std::invalid_argument("Specialty: группа не может быть nullptr");
     }
@@ -41,7 +41,7 @@ bool Specialty::AddGroup(const Group* group) {
     return true;
 }
 
-const std::vector<Group*>& Specialty::GetGroups() const {
+const std::vector& GetGroups() const{
     return groups_;
 }
 

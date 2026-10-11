@@ -22,7 +22,7 @@ public:
      * @throws std::invalid_argument если название пустое или @p department
      *         равен nullptr.
      */
-    Discipline(const std::string& name, Department* department);
+    Discipline(const std::string& name, const Department& department);
 
     /** @brief Возвращает название дисциплины. */
     const std::string& GetName() const;
@@ -47,5 +47,5 @@ public:
 
 private:
     std::string name_;
-    Department* department_;
+    Department department_;
 };

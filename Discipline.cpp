@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-Discipline::Discipline(const std::string& name, Department* department)
+Discipline(const std::string& name, const Department& department);
     : name_(name)
     , department_(department)
 {

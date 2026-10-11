@@ -112,7 +112,7 @@ protected:
      *        номер зачётной книжки для Student). Реализуется в каждом
      *        классе-наследнике.
      * @return Короткая строка с деталями, специфичными для роли.
-     */
+     */ 
     virtual std::string GetSpecificInfo() const = 0;
 
     std::string fullName_;

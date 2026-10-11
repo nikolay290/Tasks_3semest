@@ -89,6 +89,6 @@ public:
 
 private:
     std::string number_;
-    Specialty* specialty_;
+    Specialty specialty_;
     std::vector<std::shared_ptr<Student>> students_;
 };

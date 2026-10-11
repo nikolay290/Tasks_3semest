@@ -26,7 +26,7 @@ public:
      *              месяца/года (например, 30 недопустимо для февраля).
      * @throws std::invalid_argument если month или day вне допустимого диапазона.
      */
-    Date(int year, int month, int day);
+    Date(const int year, const int month, const int day);
 
     /**
      * @brief Разбирает дату из строки в строгом формате "ГГГГ-ММ-ДД".
@@ -91,14 +91,14 @@ private:
      * @brief Проверяет, что (year, month, day) образуют реальную календарную дату.
      * @throws std::invalid_argument если месяц или день вне допустимого диапазона.
      */
-    static void Validate(int year, int month, int day);
+    static void Validate(const int year, const int month, const int day);
 
     /**
      * @brief Возвращает число дней в указанном месяце указанного года
      *        (с учётом високосности: 29 дней для февраля високосного года).
      */
-    static int DaysInMonth(int year, int month);
+    static int DaysInMonth(const int year, const int month);
 
     /** @brief Возвращает true, если @p year - високосный год. */
-    static bool IsLeapYear(int year);
+    static bool IsLeapYear(const int year);
 };

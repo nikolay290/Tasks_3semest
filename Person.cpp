@@ -7,6 +7,19 @@
 
 #include <stdexcept>
 
+namespace {
+    /**
+     * @brief Выдаёт следующий свободный идентификатор человека.
+     *        Счётчик один на всю программу и монотонно растёт, поэтому
+     *        два разных объекта Person не могут получить одинаковый id.
+     * @return Уникальный идентификатор, начиная с 1.
+     */
+    int NextPersonId() {
+        static int nextId = 1;
+        return nextId++;
+    }
+}
+
 Person::Person(std::string fullName, Date birthDate)
     : fullName_(std::move(fullName))
     , birthDate_(birthDate)

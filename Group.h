@@ -35,7 +35,7 @@ public:
     const std::string& GetNumber() const;
 
     /** @brief Возвращает специальность группы. */
-    const Specialty* GetSpecialty() const;
+    const Specialty& GetSpecialty() const;
 
     /**
      * @brief Добавляет студента в группу.
@@ -47,11 +47,11 @@ public:
      * @throws std::invalid_argument если данные некорректны или зачётная
      *         книжка уже есть в группе.
      */
-    std::shared_ptr<Student> AddStudent(const std::string& fullName, const Date birthDate,
+    Student& AddStudent(const std::string& fullName, const Date birthDate,
         const std::string& recordBook, const unsigned course);
 
     /** @brief Возвращает студентов группы. */
-    const std::vector<std::shared_ptr<Student>>& GetStudents() const;
+    const std::deque<Student>& GetStudents() const;
 
     /** @brief Возвращает количество студентов в группе. */
     size_t GetStudentCount() const;

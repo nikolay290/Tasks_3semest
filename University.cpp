@@ -70,9 +70,9 @@ std::shared_ptr<Teacher> University::AddTeacher(const std::string& fullName, Dat
     return teacher;
 }
 
-std::shared_ptr<Lesson> University::AddLesson(LessonType type, const Discipline* discipline,
-    const Group* group, Teacher* teacher, Teacher* secondTeacher,
-    const std::string& room, Date date) {
+std::shared_ptr AddLesson(const LessonType& type, const Discipline& discipline,
+        const Group& group, const Teacher& teacher, const Teacher& secondTeacher,
+        const std::string& room, const Date& date); {
     auto lesson = std::make_shared<Lesson>(type, discipline, group, teacher, secondTeacher, room, date);
     lessons_.push_back(lesson);
 

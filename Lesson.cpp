@@ -10,7 +10,7 @@
 
 #include <stdexcept>
 
-const char* ToString(LessonType type) {
+const std::string ToString(LessonType type) {
     switch (type) {
     case LessonType::Lecture:   return "Лекция";
     case LessonType::Practical: return "Практика";
@@ -19,8 +19,8 @@ const char* ToString(LessonType type) {
     return "Неизвестное занятие";
 }
 
-void Lesson::Validate(LessonType type, const Discipline* discipline, const Group* group,
-    const Teacher* teacher, const Teacher* secondTeacher) {
+void Lesson::Validate(LessonType type, const Discipline& discipline, const Group& group,
+    const Teacher& teacher, const Teacher& secondTeacher) {
     if (discipline == nullptr) {
         throw std::invalid_argument("Lesson: у занятия должна быть дисциплина");
     }
@@ -43,8 +43,8 @@ void Lesson::Validate(LessonType type, const Discipline* discipline, const Group
     }
 }
 
-Lesson::Lesson(LessonType type, const Discipline* discipline, const Group* group,
-    const Teacher* teacher, const Teacher* secondTeacher, const std::string& room, Date date)
+Lesson::Lesson(LessonType type, const Discipline& discipline, const Group& group,
+    const Teacher& teacher, const Teacher& secondTeacher, const std::string& room, Date date)
     : type_(type)
     , discipline_(discipline)
     , group_(group)
@@ -61,19 +61,19 @@ LessonType Lesson::GetType() const {
     return type_;
 }
 
-const Discipline* Lesson::GetDiscipline() const {
+const Discipline& Lesson::GetDiscipline() const {
     return discipline_;
 }
 
-const Group* Lesson::GetGroup() const {
+const Group& Lesson::GetGroup() const {
     return group_;
 }
 
-const Teacher* Lesson::GetTeacher() const {
+const Teacher& Lesson::GetTeacher() const {
     return teacher_;
 }
 
-const Teacher* Lesson::GetSecondTeacher() const {
+const Teacher& Lesson::GetSecondTeacher() const {
     return secondTeacher_;
 }
 
@@ -98,7 +98,7 @@ const Date& Lesson::GetDate() const {
     return date_;
 }
 
-bool Lesson::IsTaughtBy(const Teacher* teacher) const {
+bool Lesson::IsTaughtBy(const Teacher& teacher) const {
     if (teacher == nullptr) {
         return false;
     }
@@ -111,7 +111,7 @@ std::string Lesson::GetShortInfo() const {
 
 std::string Lesson::GetInfo() const {
     std::vector<std::string> teacherNames;
-    for (const Teacher* teacher : GetTeachers()) {
+    for (const Teacher& teacher : GetTeachers()) {
         teacherNames.push_back(FormatUtils::ToInitials(teacher->GetFullName())
             + " (" + teacher->GetPosition() + ")");
     }

@@ -29,7 +29,7 @@ enum class LessonType {
  * @param type Вид занятия.
  * @return "Лекция" / "Практика" / "Лабораторная работа".
  */
-const char* ToString(LessonType type);
+const std::string ToString(LessonType type);
 
 /**
  * @brief Одно учебное занятие: дисциплина, группа, преподаватель(и),

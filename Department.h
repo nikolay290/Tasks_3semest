@@ -1,7 +1,7 @@
 #pragma once
 //
 // Department.h
-// Класс "Кафедра" ВУЗ��.
+// Класс "Кафедра" ВУЗ.
 //
 // Кафедра ведёт занятия по нескольким дисциплинам и имеет штат
 // преподавателей. Кафедра владеет своими дисциплинами (композиция).
@@ -50,10 +50,10 @@ public:
      * @return true, если преподаватель добавлен; false, если уже был в списке.
      * @throws std::invalid_argument если @p teacher равен nullptr.
      */
-    bool AddTeacher(Teacher* teacher);
+    bool AddTeacher(const Teacher& teacher);
 
     /** @brief Возвращает преподавателей кафедры. */
-    const std::vector<Teacher*>& GetTeachers() const;
+    const std::vector& GetTeachers() const;
 
     /** @brief Возвращает число преподавателей кафедры. */
     size_t GetTeacherCount() const;
@@ -76,6 +76,6 @@ public:
 
 private:
     std::string name_;
-    std::vector<std::shared_ptr<Discipline>> disciplines_;
-    std::vector<Teacher*> teachers_;
-};
+    std::vector<Discipline> disciplines_;
+    std::vector<Teacher> teachers_;
+}

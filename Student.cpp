@@ -9,8 +9,8 @@
 
 #include <stdexcept>
 
-Student::Student(const std::string& fullName, Date birthDate, const std::string& recordBook,
-    unsigned course, const Group* group)
+Student(const std::string& fullName, const Date birthDate, const std::string& recordBook,
+        const unsigned course, const Group& group);
     : Person(fullName, birthDate)      // инициализация базового класса
     , recordBook_(recordBook)
     , course_(course)

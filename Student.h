@@ -30,8 +30,8 @@ public:
      * @throws std::invalid_argument если ФИО или номер зачётной книжки
      *         пустые, course == 0 или @p group равен nullptr.
      */
-    Student(const std::string& fullName, Date birthDate, const std::string& recordBook,
-        unsigned course, const Group* group);
+    Student(const std::string& fullName, const Date birthDate, const std::string& recordBook,
+        const unsigned course, const Group& group);
 
     /** @brief Возвращает номер зачётной книжки. */
     const std::string& GetRecordBook() const;

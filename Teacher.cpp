@@ -49,7 +49,7 @@ bool AddGroup(const Group& group) {
     return true;
 }
 
-const std::vector<const Group*>& Teacher::GetGroups() const {
+const std::vector& GetGroups() const {
     return groups_;
 }
 

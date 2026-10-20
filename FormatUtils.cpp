@@ -1,218 +1,149 @@
-//
-// FormatUtils.cpp
-// Реализация вспомогательных функций форматирования.
-//
 #include "FormatUtils.h"
 
-#include <cmath>
-#include <vector>
+namespace {
+	/**
+	 * @brief Перевести символ латиницы или кириллицы в нижний регистр
+	 * @param symbol - символ в кодировке UTF-8
+	 * @return символ в нижнем регистре; по умолчанию возвращает сам символ
+	 */
+	char toLowerAscii(const char symbol) {
+		if (symbol >= 'A' && symbol <= 'Z') {
+			return static_cast<char>(symbol - 'A' + 'a');
+		}
+		return symbol;
+	}
 
-namespace FormatUtils {
+	/**
+	 * @brief Разобрать длину UTF-8-последовательности из её первого байта
+	 * @param firstByte - первый байт символа
+	 * @return длина последовательности в байтах; 1, если последовательность
+	 *         некорректна
+	 */
+	std::size_t utf8SequenceLength(const unsigned char firstByte) {
+		if (firstByte < 0x80) {
+			return 1;
+		}
+		if ((firstByte & 0xE0) == 0xC0) {
+			return 2;
+		}
+		if ((firstByte & 0xF0) == 0xE0) {
+			return 3;
+		}
+		if ((firstByte & 0xF8) == 0xF0) {
+			return 4;
+		}
+		return 1;
+	}
 
-    namespace {
-        // Таблица однобуквенных цифр - используется для сборки целой части
-        // числа поразрядно, без потоков и без <iomanip>.
-        const char* const kOneDigit[10] = {
-            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-        };
+	/**
+	 * @brief Привести весь UTF-8-текст к нижнему регистру
+	 * @param text - исходная строка
+	 * @return строка, в которой латинские и кириллические буквы заменены
+	 *         на их нижние аналоги
+	 */
+	std::string toLowerUtf8(const std::string& text) {
+		std::string result;
+		result.reserve(text.length());
+		for (std::size_t index = 0; index < text.length();) {
+			const unsigned char firstByte = static_cast<unsigned char>(text[index]);
+			const std::size_t length = utf8SequenceLength(firstByte);
+			if (length == 1) {
+				result += toLowerAscii(text[index]);
+				++index;
+				continue;
+			}
+			if (index + length > text.length()) {
+				break;
+			}
+			if (length == 2) {
+				const unsigned int codePoint =
+					(static_cast<unsigned int>(firstByte) & 0x1F) << 6 |
+					(static_cast<unsigned char>(text[index + 1]) & 0x3F);
+				if (codePoint >= 0x410 && codePoint <= 0x42F) {
+					const unsigned int lowerCase = codePoint + 0x20;
+					result += static_cast<char>(0xC0 | (lowerCase >> 6));
+					result += static_cast<char>(0x80 | (lowerCase & 0x3F));
+				} else if (codePoint == 0x401) {
+					result += static_cast<char>(0xD1);
+					result += static_cast<char>(0x91);
+				} else {
+					result.append(text, index, length);
+				}
+				index += length;
+				continue;
+			}
+			result.append(text, index, length);
+			index += length;
+		}
+		return result;
+	}
+}
 
-        // Таблица двухзначных представлений 0..99 - используется для
-        // дробной части (с ведущим нулём) и для месяца/дня в датах.
-        const char* const kTwoDigits[100] = {
-            "00","01","02","03","04","05","06","07","08","09",
-            "10","11","12","13","14","15","16","17","18","19",
-            "20","21","22","23","24","25","26","27","28","29",
-            "30","31","32","33","34","35","36","37","38","39",
-            "40","41","42","43","44","45","46","47","48","49",
-            "50","51","52","53","54","55","56","57","58","59",
-            "60","61","62","63","64","65","66","67","68","69",
-            "70","71","72","73","74","75","76","77","78","79",
-            "80","81","82","83","84","85","86","87","88","89",
-            "90","91","92","93","94","95","96","97","98","99"
-        };
+std::string FormatUtils::formatDecimal(const double value) {
+	const long long scaled = static_cast<long long>(value * 100.0 + (value >= 0 ? 0.5 : -0.5));
+	const long long wholePart = scaled / 100;
+	const long long fractionPart = scaled % 100 < 0 ? -(scaled % 100) : scaled % 100;
+	std::string result = std::to_string(wholePart) + ".";
+	result += fractionPart < 10 ? "0" + std::to_string(fractionPart) : std::to_string(fractionPart);
+	return result;
+}
 
-        /**
-         * @brief Декодирует один UTF-8 символ по индексу @p i в @p s,
-         *        записывая кодовую точку в @p cp и сдвигая @p i на длину
-         *        символа (1..4 байта).
-         */
-        unsigned int DecodeUtf8(const std::string& s, size_t& i) {
-            const unsigned char c = static_cast<unsigned char>(s[i]);
-            size_t extra = 0;
-            unsigned int cp = 0;
+bool FormatUtils::equalsIgnoreCase(const std::string& a, const std::string& b) {
+	return toLowerUtf8(a) == toLowerUtf8(b);
+}
 
-            if (c < 0x80) {                 // ASCII
-                cp = c;
-                extra = 0;
-            }
-            else if ((c & 0xE0) == 0xC0) {  // 110xxxxx
-                cp = c & 0x1Fu;
-                extra = 1;
-            }
-            else if ((c & 0xF0) == 0xE0) {  // 1110xxxx
-                cp = c & 0x0Fu;
-                extra = 2;
-            }
-            else if ((c & 0xF8) == 0xF0) {  // 11110xxx
-                cp = c & 0x07u;
-                extra = 3;
-            }
-            else {
-                // Некорректный старший байт - трактуем как отдельный символ.
-                ++i;
-                return 0xFFFDu;
-            }
+bool FormatUtils::containsIgnoreCase(const std::string& haystack, const std::string& needle) {
+	if (needle.empty()) {
+		return true;
+	}
+	return toLowerUtf8(haystack).find(toLowerUtf8(needle)) != std::string::npos;
+}
 
-            ++i;
-            for (size_t k = 0; k < extra && i < s.size(); ++k, ++i) {
-                cp = (cp << 6) | (static_cast<unsigned char>(s[i]) & 0x3Fu);
-            }
-            return cp;
-        }
+std::string FormatUtils::toInitials(const std::string& fullName) {
+	std::vector<std::string> words;
+	std::string currentWord;
+	for (std::size_t index = 0; index <= fullName.length(); ++index) {
+		if (index == fullName.length() || fullName[index] == ' ') {
+			const std::string word = trim(currentWord);
+			if (!word.empty()) {
+				words.push_back(word);
+			}
+			currentWord.clear();
+			continue;
+		}
+		currentWord += fullName[index];
+	}
+	if (words.empty()) {
+		return "";
+	}
+	std::string result = words[0];
+	for (std::size_t index = 1; index < words.size(); ++index) {
+		result += " ";
+		result.append(words[index], 0, utf8SequenceLength(static_cast<unsigned char>(words[index][0])));
+		result += ".";
+	}
+	return result;
+}
 
-        /**
-         * @brief Приводит кодовую точку Unicode к строчному регистру
-         *        (только для кириллицы и латиницы, которых достаточно для
-         *        предметной области). Остальные символы не меняются.
-         */
-        unsigned int ToLowerCodePoint(unsigned int cp) {
-            if (cp >= 0x0410 && cp <= 0x042F) return cp + 0x20; // А-Я -> а-я
-            if (cp == 0x0401) return 0x0451;                     // Ё -> ё
-            if (cp >= 0x0041 && cp <= 0x005A) return cp + 0x20; // A-Z -> a-z
-            return cp;
-        }
-    }
+std::string FormatUtils::trim(const std::string& text) {
+	std::size_t begin = 0;
+	std::size_t end = text.length();
+	while (begin < end && text[begin] == ' ') {
+		++begin;
+	}
+	while (end > begin && text[end - 1] == ' ') {
+		--end;
+	}
+	return text.substr(begin, end - begin);
+}
 
-    std::string FormatDecimal(const double value) {
-        // Округляем до сотых и печатаем целую и дробную части раздельно,
-        // чтобы избежать отрицательного нуля и обхода через потоки.
-        long long cents = static_cast<long long>(std::llround(value * 100.0));
-
-        std::string sign;
-        if (cents < 0) {
-            sign = "-";
-            cents = -cents;
-        }
-
-        const long long whole = cents / 100;
-        const long long frac = cents % 100;
-
-        std::string wholePart;
-        if (whole == 0) {
-            wholePart = "0";
-        }
-        else {
-            long long w = whole;
-            while (w > 0) {
-                wholePart = kOneDigit[w % 10] + wholePart;
-                w /= 10;
-            }
-        }
-
-        return sign + wholePart + "." + kTwoDigits[frac];
-    }
-
-    bool EqualsIgnoreCase(const std::string& a, const std::string& b) {
-        if (a.size() != b.size()) {
-            return false;
-        }
-
-        size_t i = 0;
-        size_t j = 0;
-        while (i < a.size() && j < b.size()) {
-            const unsigned int ca = ToLowerCodePoint(DecodeUtf8(a, i));
-            const unsigned int cb = ToLowerCodePoint(DecodeUtf8(b, j));
-            if (ca != cb) {
-                return false;
-            }
-        }
-        return i == a.size() && j == b.size();
-    }
-
-    bool ContainsIgnoreCase(const std::string& haystack, const std::string& needle) {
-        if (needle.empty()) {
-            return true;
-        }
-        if (needle.size() > haystack.size()) {
-            return false;
-        }
-
-        const size_t n = haystack.size() - needle.size();
-        for (size_t start = 0; start <= n; ++start) {
-            size_t i = start;
-            size_t j = 0;
-            bool matched = true;
-            while (j < needle.size()) {
-                const unsigned int ch = ToLowerCodePoint(DecodeUtf8(haystack, i));
-                const unsigned int cn = ToLowerCodePoint(DecodeUtf8(needle, j));
-                if (ch != cn) {
-                    matched = false;
-                    break;
-                }
-            }
-            if (matched) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    std::string ToInitials(const std::string& fullName) {
-        const std::string trimmed = Trim(fullName);
-        if (trimmed.empty()) {
-            return "";
-        }
-
-        // Разбиваем по пробелам без потоков.
-        std::vector<std::string> words;
-        std::string current;
-        for (char c : trimmed) {
-            if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-                if (!current.empty()) {
-                    words.push_back(current);
-                    current.clear();
-                }
-            }
-            else {
-                current.push_back(c);
-            }
-        }
-        if (!current.empty()) {
-            words.push_back(current);
-        }
-
-        std::string result = words[0];
-        for (size_t i = 1; i < words.size(); ++i) {
-            // Первая буква следующей части - это один UTF-8 символ (1..4 байта).
-            size_t pos = 0;
-            DecodeUtf8(words[i], pos);
-            result += " " + words[i].substr(0, pos) + ".";
-        }
-        return result;
-    }
-
-    std::string Trim(const std::string& text) {
-        size_t begin = 0;
-        while (begin < text.size() && (text[begin] == ' ' || text[begin] == '\t'
-            || text[begin] == '\n' || text[begin] == '\r')) {
-            ++begin;
-        }
-        size_t end = text.size();
-        while (end > begin && (text[end - 1] == ' ' || text[end - 1] == '\t'
-            || text[end - 1] == '\n' || text[end - 1] == '\r')) {
-            --end;
-        }
-        return text.substr(begin, end - begin);
-    }
-
-    std::string Join(const std::vector<std::string>& items, const std::string& separator) {
-        std::string result;
-        for (size_t i = 0; i < items.size(); ++i) {
-            if (i != 0) {
-                result += separator;
-            }
-            result += items[i];
-        }
-        return result;
-    }
+std::string FormatUtils::join(const std::vector<std::string>& items, const std::string& separator) {
+	std::string result;
+	for (std::size_t index = 0; index < items.size(); ++index) {
+		if (index > 0) {
+			result += separator;
+		}
+		result += items[index];
+	}
+	return result;
 }

@@ -1,87 +1,41 @@
-//
-// Teacher.cpp
-// Реализация типа-наследника Teacher.
-//
 #include "Teacher.h"
-#include "Department.h"
-#include "FormatUtils.h"
 
-#include <algorithm>
 #include <stdexcept>
 
-Teacher(const std::string& fullName, const Date& birthDate, const std::string& position,
-    const std::string& degree, const Department& department);
-    : Person(fullName, birthDate)
-    , position_(position)
-    , degree_(degree)
-    , department_(department)
-{
-    if (FormatUtils::Trim(position_).empty()) {
-        throw std::invalid_argument("Teacher: должность не может быть пустой");
-    }
-    if (department == nullptr) {
-        throw std::invalid_argument("Teacher: преподаватель должен работать на кафедре");
-    }
-    position_ = FormatUtils::Trim(position_);
-    degree_ = FormatUtils::Trim(degree_);
+#include "FormatUtils.h"
+
+Teacher::Teacher(const std::string& fullName, const Date& birthDate, const std::string& position,
+	const std::string& degree, const Department& department, const int id)
+	: Person(fullName, birthDate, id), position(FormatUtils::trim(position)),
+	degree(FormatUtils::trim(degree)), department(department) {
+	if (this->position.empty()) {
+		throw std::invalid_argument("Должность преподавателя не может быть пустой");
+	}
 }
 
-const std::string& Teacher::GetPosition() const {
-    return position_;
+const std::string& Teacher::getPosition() const noexcept {return position;}
+
+const std::string& Teacher::getDegree() const noexcept {return degree;}
+
+const Department& Teacher::getDepartment() const noexcept {return department;}
+
+std::string Teacher::getRole() const {return "Преподаватель";}
+
+std::string Teacher::getSpecificInfo() const {
+	std::string result = "Должность: " + position + " | Кафедра: " + department.getName();
+	if (!degree.empty()) {
+		result += " | Учёная степень: " + degree;
+	}
+	return result;
 }
 
-const std::string& Teacher::GetDegree() const {
-    return degree_;
+bool Teacher::isTeacher() const {return true;}
+
+bool Teacher::operator==(const Teacher& other) const noexcept {
+	return id == other.id &&
+		FormatUtils::equalsIgnoreCase(position, other.position) &&
+		FormatUtils::equalsIgnoreCase(degree, other.degree) &&
+		department == other.department;
 }
 
-const Department* Teacher::GetDepartment() const {
-    return department_;
-}
-
-bool AddGroup(const Group& group) {
-    if (group == nullptr) {
-        throw std::invalid_argument("Teacher: группа не может быть nullptr");
-    }
-    if (std::find(groups_.begin(), groups_.end(), group) != groups_.end()) {
-        return false; // уже зарегистрирована
-    }
-    groups_.push_back(group);
-    return true;
-}
-
-const std::vector& GetGroups() const {
-    return groups_;
-}
-
-bool Teacher::TeachesInGroup(const Group* group) const {
-    if (group == nullptr) {
-        return false;
-    }
-    return std::find(groups_.begin(), groups_.end(), group) != groups_.end();
-}
-
-bool Teacher::IsTeacher() const {
-    return true;
-}
-
-std::string Teacher::GetRole() const {
-    return "Преподаватель";
-}
-
-std::string Teacher::GetInfo() const {
-    const std::string departmentName = (department_ != nullptr) ? department_->GetName() : "не определена";
-
-    return "Преподаватель: " + GetFullName()
-        + " | должность: " + position_
-        + " | степень: " + (degree_.empty() ? "нет" : degree_)
-        + " | кафедра: " + departmentName
-        + " | ведёт занятия в " + std::to_string(groups_.size()) + " гр.";
-}
-
-std::string Teacher::GetShortInfo() const {
-    return FormatUtils::ToInitials(GetFullName()) + " (" + position_ + ")";
-}
-
-std::string Teacher::GetSpecificInfo() const {
-    return position_ + (degree_.empty() ? "" : ", " + degree_);
-}
+bool Teacher::operator!=(const Teacher& other) const noexcept {return !(*this == other);}

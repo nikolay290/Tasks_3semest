@@ -1,94 +1,119 @@
 #pragma once
-//
-// Group.h
-// Класс "Группа" - объединение студентов, обучающихся на одной специальности.
-//
-// Группа владеет своими студентами (композиция) и знает свою специальность.
-// Студенты группы хранятся как std::shared_ptr<Student>, чтобы на них могли
-// ссылаться и University, и Specialty без дублирования владения.
-//
-#include <memory>
+
+#include <cstddef>
 #include <string>
 #include <vector>
-#include "Date.h"
 
-class Student;
-class Specialty;
+#include "Specialty.h"
+#include "Student.h"
 
 /**
- * @brief Группа студентов с её номером, специальностью и списком студентов.
+ * @brief Класс Группа
  */
 class Group {
-public:
-    /**
-     * @brief Создаёт группу и сразу регистрирует её в списке групп
-     *        специальности @p specialty. Благодаря этому сохраняется
-     *        инвариант "каждая группа обучается ровно на одной
-     *        специальности и присутствует в её списке" независимо от
-     *        того, создана группа напрямую или через University.
-     * @param number    Номер группы (например, "1И").
-     * @param specialty Специальность, на которой обучается группа.
-     * @throws std::invalid_argument если номер пуст или @p specialty равен nullptr.
-     */
-    Group(const std::string& number, const Specialty* specialty);
-    /** @brief Возвращает номер группы. */
-    const std::string& GetNumber() const;
+	private:
+		/**
+		 * @brief Номер группы
+		 */
+		std::string number;
 
-    /** @brief Возвращает специальность группы. */
-    const Specialty& GetSpecialty() const;
+		/**
+		 * @brief Специальность группы
+		 */
+		Specialty specialty;
 
-    /**
-     * @brief Добавляет студента в группу.
-     * @param fullName   ФИО студента.
-     * @param birthDate  Дата рождения.
-     * @param recordBook Номер зачётной книжки.
-     * @param course     Номер курса.
-     * @return Умный указатель на созданного студента.
-     * @throws std::invalid_argument если данные некорректны или зачётная
-     *         книжка уже есть в группе.
-     */
-    Student& AddStudent(const std::string& fullName, const Date birthDate,
-        const std::string& recordBook, const unsigned course);
+		/**
+		 * @brief Студенты группы
+		 */
+		std::vector<Student> students;
 
-    /** @brief Возвращает студентов группы. */
-    const std::deque<Student>& GetStudents() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param number - номер группы, например "1И"
+		 * @param specialty - специальность, на которой обучается группа
+		 * @throws std::invalid_argument если номер группы пустой
+		 */
+		Group(const std::string& number, const Specialty& specialty);
 
-    /** @brief Возвращает количество студентов в группе. */
-    size_t GetStudentCount() const;
+		/**
+		 * @brief Получить номер группы
+		 * @return номер группы
+		 */
+		const std::string& getNumber() const noexcept;
 
-    /**
-     * @brief Ищет студента в группе по номеру зачётной книжки
-     *        (регистронезависимо).
-     * @param recordBook Номер зачётной книжки.
-     * @return Умный указатель на студента либо nullptr, если не найден.
-     */
-    std::shared_ptr<Student> FindStudentByRecordBook(const std::string& recordBook) const;
+		/**
+		 * @brief Получить специальность группы
+		 * @return ссылку на специальность
+		 */
+		const Specialty& getSpecialty() const noexcept;
 
-    /**
-     * @brief Ищет первого студента, чьё ФИО содержит @p fullName
-     *        (регистронезависимо).
-     * @param fullName ФИО или его часть.
-     * @return Умный указатель на студента либо nullptr, если не найден.
-     */
-    std::shared_ptr<Student> FindStudentByFullName(const std::string& fullName) const;
+		/**
+		 * @brief Добавить студента в группу
+		 * @param student - добавляемый студент
+		 * @throws std::invalid_argument если студент с таким номером
+		 *         зачётной книжки уже есть в группе
+		 */
+		void addStudent(const Student& student);
 
-    /**
-     * @brief Возвращает средний балл группы.
-     * @return Средний балл; 0.0, если в группе нет студентов.
-     */
-    double GetAverageMark() const;
+		/**
+		 * @brief Получить список студентов группы
+		 * @return ссылку на массив студентов
+		 */
+		const std::vector<Student>& getStudents() const noexcept;
 
-    /** @brief Возвращает краткое представление: "номер (код специальности)". */
-    std::string GetShortInfo() const;
+		/**
+		 * @brief Получить число студентов в группе
+		 * @return число студентов
+		 */
+		std::size_t getStudentCount() const noexcept;
 
-    /**
-     * @brief Формирует описание группы: номер, специальность, число студентов.
-     * @return Отформатированная строка с описанием.
-     */
-    std::string GetInfo() const;
+		/**
+		 * @brief Найти студента по номеру зачётной книжки
+		 * @param recordBook - номер зачётной книжки
+		 * @return true, если в группе есть студент с таким номером
+		 *         зачётной книжки
+		 */
+		bool findStudentByRecordBook(const std::string& recordBook) const;
 
-private:
-    std::string number_;
-    Specialty specialty_;
-    std::vector<std::shared_ptr<Student>> students_;
+		/**
+		 * @brief Получить студента по номеру зачётной книжки
+		 * @param recordBook - номер зачётной книжки
+		 * @return массив из одного найденного студента или пустой массив,
+		 *         если студента нет
+		 */
+		std::vector<Student> getStudentByRecordBook(const std::string& recordBook) const;
+
+		/**
+		 * @brief Получить средний балл группы
+		 * @return средний балл по всем оценкам всех студентов или 0,
+		 *         если оценок нет
+		 */
+		double getAverageMark() const noexcept;
+
+		/**
+		 * @brief Получить краткое представление группы
+		 * @return номер группы
+		 */
+		std::string getShortInfo() const;
+
+		/**
+		 * @brief Получить полную информацию о группе
+		 * @return строку с номером группы, специальностью и числом студентов
+		 */
+		std::string getInfo() const;
+
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - вторая группа
+		 * @return true, если номера и специальности групп совпадают
+		 */
+		bool operator==(const Group& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - вторая группа
+		 * @return true, если группы различаются
+		 */
+		bool operator!=(const Group& other) const noexcept;
 };

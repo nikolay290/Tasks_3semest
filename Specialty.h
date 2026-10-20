@@ -1,63 +1,66 @@
 #pragma once
-//
-// Specialty.h
-// Класс "Специальность" (направление подготовки).
-//
-// По одной специальности в ВУЗе обучается несколько групп - это основа
-// четвёртого запроса варианта "ВУЗ".
-//
-#include <string>
-#include <vector>
 
-class Group;
+#include <string>
 
 /**
- * @brief Специальность ВУЗа с её кодом и списком обучающихся групп.
+ * @brief Класс Специальность
  */
 class Specialty {
-public:
-    /**
-     * @brief Создаёт специальность.
-     * @param code Код специальности (например, "09.02.07").
-     * @param name Название специальности.
-     * @throws std::invalid_argument если код или название пустые.
-     */
-    Specialty(const std::string& code, const std::string& name);
+	private:
+		/**
+		 * @brief Код специальности
+		 */
+		std::string code;
 
-    /** @brief Возвращает код специальности. */
-    const std::string& GetCode() const;
+		/**
+		 * @brief Название специальности
+		 */
+		std::string name;
 
-    /** @brief Возвращает название специальности. */
-    const std::string& GetName() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param code - код специальности, например "09.02.07"
+		 * @param name - название специальности
+		 * @throws std::invalid_argument если код или название пустые
+		 */
+		Specialty(const std::string& code, const std::string& name);
 
-    /**
-     * @brief Регистрирует группу, обучающуюся на этой специальности.
-     *        Обычно вызывается автоматически конструктором Group -
-     *        метод оставлен для явного добавления и проверки дубликатов.
-     *        Ссылка не владеющая: группами владеет University.
-     * @param group Группа для регистрации.
-     * @return true, если группа добавлена; false, если уже была зарегистрирована.
-     * @throws std::invalid_argument если @p group равен nullptr.
-     */
-    bool AddGroup(const Group& group);
+		/**
+		 * @brief Получить код специальности
+		 * @return код специальности
+		 */
+		const std::string& getCode() const noexcept;
 
-    /** @brief Возвращает группы, обучающиеся на этой специальности. */
-    const std::vector& GetGroups() const;
+		/**
+		 * @brief Получить название специальности
+		 * @return название специальности
+		 */
+		const std::string& getName() const noexcept;
 
-    /** @brief Возвращает количество обучающихся групп. */
-    size_t GetGroupCount() const;
+		/**
+		 * @brief Получить краткое представление специальности
+		 * @return строка вида "09.02.07 - Информатика и вычислительная техника"
+		 */
+		std::string getShortInfo() const;
 
-    /** @brief Возвращает краткое представление: "код - название". */
-    std::string GetShortInfo() const;
+		/**
+		 * @brief Получить полную информацию о специальности
+		 * @return строка с кодом и названием специальности
+		 */
+		std::string getInfo() const;
 
-    /**
-     * @brief Формирует описание специальности с числом групп.
-     * @return Отформатированная строка с описанием.
-     */
-    std::string GetInfo() const;
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - вторая специальность
+		 * @return true, если коды и названия специальностей совпадают
+		 */
+		bool operator==(const Specialty& other) const noexcept;
 
-private:
-    std::string code_;
-    std::string name_;
-    std::vector groups_;
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - вторая специальность
+		 * @return true, если специальности различаются
+		 */
+		bool operator!=(const Specialty& other) const noexcept;
 };

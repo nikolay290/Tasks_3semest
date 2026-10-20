@@ -1,303 +1,254 @@
-//
-// University.cpp
-// Реализация класса University.
-//
 #include "University.h"
-#include "Department.h"
-#include "Discipline.h"
-#include "Group.h"
-#include "Lesson.h"
-#include "Person.h"
-#include "Specialty.h"
-#include "Student.h"
-#include "Teacher.h"
-#include "FormatUtils.h"
 
-#include <algorithm>
 #include <stdexcept>
 
+#include "FormatUtils.h"
+#include "Person.h"
+#include "Student.h"
+#include "Specialty.h"
+
 University::University()
-    : name_("ВУЗ")
-{
+	: name("ВУЗ") {}
+
+University::University(const std::string& name)
+	: name(FormatUtils::trim(name)) {
+	if (this->name.empty()) {
+		throw std::invalid_argument("Название ВУЗа не может быть пустым");
+	}
 }
 
-University::~University() = default;
+const std::string& University::getName() const noexcept {return name;}
 
-// ---- Создание объектов ----
-
-std::shared_ptr<Specialty> University::AddSpecialty(const std::string& code, const std::string& name) {
-    if (FindSpecialtyByCode(code) != nullptr) {
-        throw std::invalid_argument("University: специальность с кодом " + code + " уже существует");
-    }
-    auto specialty = std::make_shared<Specialty>(code, name);
-    specialties_.push_back(specialty);
-    return specialty;
+void University::setName(const std::string& newName) {
+	const std::string trimmedName = FormatUtils::trim(newName);
+	if (trimmedName.empty()) {
+		throw std::invalid_argument("Название ВУЗа не может быть пустым");
+	}
+	this->name = trimmedName;
 }
 
-std::shared_ptr<Department> University::AddDepartment(const std::string& name) {
-    if (FindDepartmentByName(name) != nullptr) {
-        throw std::invalid_argument("University: кафедра \"" + name + "\" уже существует");
-    }
-    auto department = std::make_shared<Department>(name);
-    departments_.push_back(department);
-    return department;
+void University::addSpecialty(const Specialty& specialty) {
+	if (findSpecialtyByCode(specialty.getCode())) {
+		throw std::invalid_argument("Специальность с кодом " + specialty.getCode() + " уже есть в ВУЗе");
+	}
+	specialties.push_back(specialty);
 }
 
-std::shared_ptr<Group> University::AddGroup(const std::string& number, Specialty* specialty) {
-    if (specialty == nullptr) {
-        throw std::invalid_argument("University: группа должна относиться к специальности");
-    }
-    if (FindGroupByNumber(number) != nullptr) {
-        throw std::invalid_argument("University: группа с номером " + number + " уже существует");
-    }
-
-    auto group = std::make_shared<Group>(number, specialty);
-    groups_.push_back(group);
-    // Регистрация группы в списке её специальности выполняется
-    // конструктором Group - здесь дублировать её не нужно.
-    return group;
+void University::addDepartment(const Department& department) {
+	if (findDepartmentByName(department.getName())) {
+		throw std::invalid_argument("Кафедра " + department.getName() + " уже есть в ВУЗе");
+	}
+	departments.push_back(department);
 }
 
-std::shared_ptr<Teacher> University::AddTeacher(const std::string& fullName, Date birthDate,
-    const std::string& position, const std::string& degree, Department* department) {
-    if (department == nullptr) {
-        throw std::invalid_argument("University: преподаватель должен работать на кафедре");
-    }
-
-    auto teacher = std::make_shared<Teacher>(fullName, birthDate, position, degree, department);
-    teachers_.push_back(teacher);
-    department->AddTeacher(teacher.get());
-    return teacher;
+void University::addDiscipline(const Discipline& discipline) {
+	for (const Discipline& added : disciplines) {
+		if (added == discipline) {
+			throw std::invalid_argument("Дисциплина " + discipline.getName() + " уже есть в ВУЗе");
+		}
+	}
+	disciplines.push_back(discipline);
 }
 
-std::shared_ptr AddLesson(const LessonType& type, const Discipline& discipline,
-        const Group& group, const Teacher& teacher, const Teacher& secondTeacher,
-        const std::string& room, const Date& date); {
-    auto lesson = std::make_shared<Lesson>(type, discipline, group, teacher, secondTeacher, room, date);
-    lessons_.push_back(lesson);
-
-    // Регистрируем у преподавателей, в каких группах они ведут занятия -
-    // это нужно третьему запросу ("список преподавателей, проводящих
-    // занятия в данной группе"). Teacher хранит не владеющие указатели
-    // на группы, которые живут дольше преподавателей.
-    if (teacher != nullptr) {
-        teacher->AddGroup(group);
-    }
-    if (secondTeacher != nullptr) {
-        secondTeacher->AddGroup(group);
-    }
-    return lesson;
+void University::addGroup(const Group& group) {
+	if (findGroupByNumber(group.getNumber())) {
+		throw std::invalid_argument("Группа " + group.getNumber() + " уже есть в ВУЗе");
+	}
+	groups.push_back(group);
 }
 
-// ---- Общий доступ ----
-
-const std::string& University::GetName() const {
-    return name_;
+void University::addTeacher(const Teacher& teacher) {
+	if (findTeacherById(teacher.getId())) {
+		throw std::invalid_argument("Преподаватель с id " + std::to_string(teacher.getId()) +
+			" уже есть в ВУЗе");
+	}
+	teachers.push_back(teacher);
 }
 
-void University::SetName(const std::string& name) {
-    if (FormatUtils::Trim(name).empty()) {
-        throw std::invalid_argument("University: название вуза не может быть пустым");
-    }
-    name_ = FormatUtils::Trim(name);
+void University::addLesson(const Lesson& lesson) {
+	if (!findGroupByNumber(lesson.getGroupNumber())) {
+		throw std::invalid_argument("Группа " + lesson.getGroupNumber() + " не найдена в ВУЗе");
+	}
+	for (const Teacher& lessonTeacher : lesson.getTeachers()) {
+		if (!findTeacherById(lessonTeacher.getId())) {
+			throw std::invalid_argument("Преподаватель " + lessonTeacher.getFullName() +
+				" не найден в ВУЗе");
+		}
+	}
+	lessons.push_back(lesson);
 }
 
-const std::vector<std::shared_ptr<Specialty>>& University::GetSpecialties() const {
-    return specialties_;
+const std::vector<Specialty>& University::getSpecialties() const noexcept {return specialties;}
+
+const std::vector<Department>& University::getDepartments() const noexcept {return departments;}
+
+const std::vector<Discipline>& University::getDisciplines() const noexcept {return disciplines;}
+
+const std::vector<Group>& University::getGroups() const noexcept {return groups;}
+
+const std::vector<Teacher>& University::getTeachers() const noexcept {return teachers;}
+
+const std::vector<Lesson>& University::getLessons() const noexcept {return lessons;}
+
+bool University::findSpecialtyByCode(const std::string& code) const noexcept {
+	for (const Specialty& specialty : specialties) {
+		if (FormatUtils::equalsIgnoreCase(specialty.getCode(), code)) {
+			return true;
+		}
+	}
+	return false;
 }
 
-const std::vector<std::shared_ptr<Department>>& University::GetDepartments() const {
-    return departments_;
+bool University::findDepartmentByName(const std::string& departmentName) const noexcept {
+	for (const Department& department : departments) {
+		if (FormatUtils::equalsIgnoreCase(department.getName(), departmentName)) {
+			return true;
+		}
+	}
+	return false;
 }
 
-const std::vector<std::shared_ptr<Group>>& University::GetGroups() const {
-    return groups_;
+bool University::findGroupByNumber(const std::string& groupNumber) const noexcept {
+	for (const Group& group : groups) {
+		if (group.getNumber() == groupNumber) {
+			return true;
+		}
+	}
+	return false;
 }
 
-const std::vector<std::shared_ptr<Teacher>>& University::GetTeachers() const {
-    return teachers_;
+bool University::findTeacherById(const int id) const noexcept {
+	for (const Teacher& teacher : teachers) {
+		if (teacher.getId() == id) {
+			return true;
+		}
+	}
+	return false;
 }
 
-const std::vector<std::shared_ptr<Lesson>>& University::GetLessons() const {
-    return lessons_;
+bool University::findTeacherByFullName(const std::string& fullName) const {
+	return !getTeacherByFullName(fullName).empty();
 }
 
-// ---- Запрос 1 ----
-
-std::shared_ptr<Student> University::FindStudentByRecordBook(const std::string& recordBook) const {
-    for (const std::shared_ptr<Group>& group : groups_) {
-        std::shared_ptr<Student> student = group->FindStudentByRecordBook(recordBook);
-        if (student != nullptr) {
-            return student;
-        }
-    }
-    return nullptr;
+bool University::findStudentByRecordBook(const std::string& recordBook) const {
+	return !getStudentByRecordBook(recordBook).empty();
 }
 
-std::vector<std::shared_ptr<Student>> University::FindStudentsByFullName(const std::string& fullName) const {
-    std::vector<std::shared_ptr<Student>> result;
-    const std::string target = FormatUtils::Trim(fullName);
-    if (target.empty()) {
-        return result;
-    }
-
-    for (const std::shared_ptr<Group>& group : groups_) {
-        for (const std::shared_ptr<Student>& student : group->GetStudents()) {
-            if (FormatUtils::ContainsIgnoreCase(student->GetFullName(), target)) {
-                result.push_back(student);
-            }
-        }
-    }
-    return result;
+std::vector<Student> University::getStudentByRecordBook(const std::string& recordBook) const {
+	for (const Group& group : groups) {
+		const std::vector<Student> found = group.getStudentByRecordBook(recordBook);
+		if (!found.empty()) {
+			return found;
+		}
+	}
+	return {};
 }
 
-// ---- Запрос 2 ----
-
-std::vector<std::shared_ptr<Discipline>> University::GetDisciplinesByDepartment(const Department* department) const {
-    std::vector<std::shared_ptr<Discipline>> result;
-    if (department == nullptr) {
-        return result;
-    }
-
-    for (const std::shared_ptr<Department>& candidate : departments_) {
-        if (candidate.get() == department) {
-            return candidate->GetDisciplines();
-        }
-    }
-    return result;
+std::vector<Teacher> University::getTeacherByFullName(const std::string& fullName) const {
+	std::vector<Teacher> result;
+	for (const Teacher& teacher : teachers) {
+		if (FormatUtils::equalsIgnoreCase(teacher.getFullName(), fullName)) {
+			result.push_back(teacher);
+			break;
+		}
+	}
+	return result;
 }
 
-// ---- Запрос 3 ----
-
-std::vector<std::shared_ptr<Teacher>> University::GetTeachersByGroup(const Group* group) const {
-    std::vector<std::shared_ptr<Teacher>> result;
-    if (group == nullptr) {
-        return result;
-    }
-
-    // Проходим по занятиям группы: так учитываются и вторые преподаватели
-    // лабораторных работ, а повторы исключаются сравнением указателей.
-    for (const std::shared_ptr<Lesson>& lesson : lessons_) {
-        if (lesson->GetGroup() != group) {
-            continue;
-        }
-        for (const Teacher* teacher : lesson->GetTeachers()) {
-            const bool alreadyPresent = std::any_of(
-                result.begin(), result.end(),
-                [teacher](const std::shared_ptr<Teacher>& item) { return item.get() == teacher; });
-            if (!alreadyPresent) {
-                for (const std::shared_ptr<Teacher>& owned : teachers_) {
-                    if (owned.get() == teacher) {
-                        result.push_back(owned);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    return result;
+std::vector<Student> University::findStudentsByFullName(const std::string& fullName) const {
+	std::vector<Student> result;
+	for (const Group& group : groups) {
+		for (const Student& student : group.getStudents()) {
+			if (FormatUtils::containsIgnoreCase(student.getFullName(), fullName)) {
+				result.push_back(student);
+			}
+		}
+	}
+	return result;
 }
 
-// ---- Запрос 4 ----
-
-std::vector<std::shared_ptr<Group>> University::GetGroupsBySpecialty(const Specialty* specialty) const {
-    std::vector<std::shared_ptr<Group>> result;
-    if (specialty == nullptr) {
-        return result;
-    }
-
-    for (const std::shared_ptr<Group>& group : groups_) {
-        if (group->GetSpecialty() == specialty) {
-            result.push_back(group);
-        }
-    }
-    return result;
+std::vector<Discipline> University::getDisciplinesByDepartment(const Department& department) const {
+	std::vector<Discipline> result;
+	for (const Discipline& discipline : disciplines) {
+		if (discipline.getDepartment() == department) {
+			result.push_back(discipline);
+		}
+	}
+	return result;
 }
 
-// ---- Дополнительные запросы ----
-
-std::shared_ptr<Department> University::FindDepartmentByName(const std::string& name) const {
-    const std::string target = FormatUtils::Trim(name);
-    for (const std::shared_ptr<Department>& department : departments_) {
-        if (FormatUtils::EqualsIgnoreCase(department->GetName(), target)) {
-            return department;
-        }
-    }
-    return nullptr;
+std::vector<Teacher> University::getTeachersByGroup(const Group& group) const {
+	std::vector<Teacher> result;
+	for (const Lesson& lesson : lessons) {
+		if (lesson.getGroupNumber() != group.getNumber()) {
+			continue;
+		}
+		for (const Teacher& lessonTeacher : lesson.getTeachers()) {
+			bool alreadyAdded = false;
+			for (const Teacher& added : result) {
+				if (added.getId() == lessonTeacher.getId()) {
+					alreadyAdded = true;
+					break;
+				}
+			}
+			if (alreadyAdded) {
+				continue;
+			}
+			for (const Teacher& teacher : teachers) {
+				if (teacher.getId() == lessonTeacher.getId()) {
+					result.push_back(teacher);
+					break;
+				}
+			}
+		}
+	}
+	return result;
 }
 
-std::shared_ptr<Specialty> University::FindSpecialtyByCode(const std::string& code) const {
-    const std::string target = FormatUtils::Trim(code);
-    for (const std::shared_ptr<Specialty>& specialty : specialties_) {
-        if (FormatUtils::EqualsIgnoreCase(specialty->GetCode(), target)) {
-            return specialty;
-        }
-    }
-    return nullptr;
+std::vector<Group> University::getGroupsBySpecialty(const Specialty& specialty) const {
+	std::vector<Group> result;
+	for (const Group& group : groups) {
+		if (group.getSpecialty() == specialty) {
+			result.push_back(group);
+		}
+	}
+	return result;
 }
 
-std::shared_ptr<Group> University::FindGroupByNumber(const std::string& number) const {
-    const std::string target = FormatUtils::Trim(number);
-    for (const std::shared_ptr<Group>& group : groups_) {
-        if (FormatUtils::EqualsIgnoreCase(group->GetNumber(), target)) {
-            return group;
-        }
-    }
-    return nullptr;
+std::vector<Student> University::getAllStudents() const {
+	std::vector<Student> result;
+	for (const Group& group : groups) {
+		for (const Student& student : group.getStudents()) {
+			result.push_back(student);
+		}
+	}
+	return result;
 }
 
-std::vector<std::shared_ptr<Lesson>> University::GetLessonsByGroup(const Group* group) const {
-    std::vector<std::shared_ptr<Lesson>> result;
-    if (group == nullptr) {
-        return result;
-    }
-    for (const std::shared_ptr<Lesson>& lesson : lessons_) {
-        if (lesson->GetGroup() == group) {
-            result.push_back(lesson);
-        }
-    }
-    return result;
+std::vector<Teacher> University::getAllTeachers() const {
+	return teachers;
 }
 
-std::vector<std::shared_ptr<Person>> University::GetAllPeople() const {
-    // Именно этот метод формирует полиморфную коллекцию БАЗОВОГО типа
-    // Person, которую затем обходит main.cpp как коллекцию базового класса.
-    std::vector<std::shared_ptr<Person>> people;
-
-    for (const std::shared_ptr<Group>& group : groups_) {
-        for (const std::shared_ptr<Student>& student : group->GetStudents()) {
-            // shared_ptr<Student> преобразуется в shared_ptr<Person>
-            // (Student наследуется публично от Person).
-            people.push_back(student);
-        }
-    }
-    for (const std::shared_ptr<Teacher>& teacher : teachers_) {
-        people.push_back(teacher);
-    }
-    return people;
-}
-
-std::vector<std::shared_ptr<Student>> University::GetAllStudents() const {
-    std::vector<std::shared_ptr<Student>> result;
-    for (const std::shared_ptr<Group>& group : groups_) {
-        for (const std::shared_ptr<Student>& student : group->GetStudents()) {
-            result.push_back(student);
-        }
-    }
-    return result;
-}
-
-std::string University::GetStatistics() const {
-    size_t studentCount = 0;
-    for (const std::shared_ptr<Group>& group : groups_) {
-        studentCount += group->GetStudentCount();
-    }
-
-    return "ВУЗ: " + name_
-        + " | специальностей: " + std::to_string(specialties_.size())
-        + " | кафедр: " + std::to_string(departments_.size())
-        + " | групп: " + std::to_string(groups_.size())
-        + " | студентов: " + std::to_string(studentCount)
-        + " | преподавателей: " + std::to_string(teachers_.size())
-        + " | занятий: " + std::to_string(lessons_.size());
+std::string University::getStatistics() const {
+	std::size_t studentCount = 0;
+	std::size_t markCount = 0;
+	double totalMarkSum = 0.0;
+	for (const Group& group : groups) {
+		studentCount += group.getStudentCount();
+		for (const Student& student : group.getStudents()) {
+			markCount += student.getMarkCount();
+			totalMarkSum += student.getAverageMark() * static_cast<double>(student.getMarkCount());
+		}
+	}
+	const double averageMark = markCount == 0 ? 0.0 : totalMarkSum / static_cast<double>(markCount);
+	return "ВУЗ: " + name +
+		" | Специальностей: " + std::to_string(specialties.size()) +
+		" | Кафедр: " + std::to_string(departments.size()) +
+		" | Дисциплин: " + std::to_string(disciplines.size()) +
+		" | Групп: " + std::to_string(groups.size()) +
+		" | Студентов: " + std::to_string(studentCount) +
+		" | Преподавателей: " + std::to_string(teachers.size()) +
+		" | Занятий: " + std::to_string(lessons.size()) +
+		" | Оценок: " + std::to_string(markCount) +
+		" | Средний балл: " + FormatUtils::formatDecimal(averageMark);
 }

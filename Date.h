@@ -1,104 +1,124 @@
 #pragma once
-//
-// Date.h
-// Простой самодостаточный тип "дата" (без использования потоков ввода-вывода).
-//
-// Умеет разбирать даты в формате "ГГГГ-ММ-ДД", сравнивать их и вычислять
-// разницу в днях между двумя датами. Используется в доменных классах
-// варианта "ВУЗ": дата рождения студента/преподавателя (Person), дата
-// проведения занятия (Lesson) - без зависимости от <ctime> или каких-либо
-// системных потоков ввода-вывода.
-//
+
 #include <string>
 
 /**
- * @brief Неизменяемая календарная дата (год/месяц/день), без компонента
- *        времени суток и без зависимости от локали, <ctime> или потоков
- *        ввода-вывода.
+ * @brief Неизменяемая календарная дата
  */
 class Date {
-public:
-    /**
-     * @brief Создаёт дату по числовым компонентам.
-     * @param year  Год.
-     * @param month Номер месяца, 1-12.
-     * @param day   День месяца; должен быть допустимым для указанного
-     *              месяца/года (например, 30 недопустимо для февраля).
-     * @throws std::invalid_argument если month или day вне допустимого диапазона.
-     */
-    Date(const int year, const int month, const int day);
+	private:
+		/**
+		 * @brief Год
+		 */
+		int year;
 
-    /**
-     * @brief Разбирает дату из строки в строгом формате "ГГГГ-ММ-ДД".
-     * @param isoDate Строка с датой, например "2004-03-15".
-     * @return Разобранная дата (Date).
-     * @throws std::invalid_argument если строка не соответствует формату
-     *         или не представляет собой корректную календарную дату.
-     */
-    static Date Parse(const std::string& isoDate);
+		/**
+		 * @brief Месяц, 1-12
+		 */
+		int month;
 
-    /** @brief Возвращает календарный год. */
-    int GetYear() const;
+		/**
+		 * @brief День месяца
+		 */
+		int day;
 
-    /** @brief Возвращает номер месяца (1-12). */
-    int GetMonth() const;
+		/**
+		 * @brief Проверить, високосный ли год
+		 * @param year - проверяемый год
+		 * @return true, если год високосный
+		 */
+		static bool isLeapYear(const int year) noexcept;
 
-    /** @brief Возвращает день месяца. */
-    int GetDay() const;
+		/**
+		 * @brief Получить число дней в месяце
+		 * @param year - год, нужен только для февраля
+		 * @param month - месяц, 1-12
+		 * @return число дней в указанном месяце
+		 */
+		static int daysInMonth(const int year, const int month) noexcept;
 
-    /**
-     * @brief Форматирует дату как "ГГГГ-ММ-ДД" (месяц и день с ведущим нулём).
-     * @return Отформатированная строка с датой.
-     */
-    std::string ToString() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param year - год
+		 * @param month - месяц, 1-12
+		 * @param day - день месяца, допустимый для этого месяца и года
+		 * @throws std::invalid_argument если месяц или день недопустимы
+		 */
+		Date(const int year, const int month, const int day);
 
-    /**
-     * @brief Преобразует дату в номер дня относительно фиксированной эпохи.
-     *        Удобно для упорядочивания дат и вычисления разницы в днях.
-     * @return Знаковое количество дней; большее значение - более поздняя дата.
-     */
-    long ToDayNumber() const;
+		/**
+		 * @brief Разобрать дату из строки строгого формата "ГГГГ-ММ-ДД"
+		 * @param isoDate - строка с датой, например "2004-03-15"
+		 * @return разобранная дата
+		 * @throws std::invalid_argument если строка не соответствует формату
+		 *         или не является корректной календарной датой
+		 */
+		static Date parse(const std::string& isoDate);
 
-    /**
-     * @brief Вычисляет, сколько полных дней отделяет текущую дату от @p other.
-     * @param other Дата для сравнения.
-     * @return (other - this) в днях. Отрицательное значение означает, что
-     *         @p other раньше текущей даты.
-     */
-    long DaysUntil(const Date& other) const;
+		/**
+		 * @brief Получить год
+		 * @return год
+		 */
+		int getYear() const noexcept;
 
-    /** @brief Сравнение на равенство (совпадают год, месяц и день). */
-    bool operator==(const Date& other) const;
-    /** @brief Сравнение на неравенство, отрицание operator==. */
-    bool operator!=(const Date& other) const;
-    /** @brief Строгое сравнение "раньше чем". */
-    bool operator<(const Date& other) const;
-    /** @brief Сравнение "раньше или совпадает". */
-    bool operator<=(const Date& other) const;
-    /** @brief Строгое сравнение "позже чем". */
-    bool operator>(const Date& other) const;
-    /** @brief Сравнение "позже или совпадает". */
-    bool operator>=(const Date& other) const;
+		/**
+		 * @brief Получить номер месяца
+		 * @return номер месяца, 1-12
+		 */
+		int getMonth() const noexcept;
 
-private:
-    // Инициализаторы по умолчанию - защита на случай, если в будущем
-    // появится конструктор, забывший явно задать одно из полей.
-    int year_ = 0;
-    int month_ = 0;
-    int day_ = 0;
+		/**
+		 * @brief Получить день месяца
+		 * @return день месяца
+		 */
+		int getDay() const noexcept;
 
-    /**
-     * @brief Проверяет, что (year, month, day) образуют реальную календарную дату.
-     * @throws std::invalid_argument если месяц или день вне допустимого диапазона.
-     */
-    static void Validate(const int year, const int month, const int day);
+		/**
+		 * @brief Получить дату строкой формата "ГГГГ-ММ-ДД"
+		 * @return дата в виде строки
+		 */
+		std::string toString() const;
 
-    /**
-     * @brief Возвращает число дней в указанном месяце указанного года
-     *        (с учётом високосности: 29 дней для февраля високосного года).
-     */
-    static int DaysInMonth(const int year, const int month);
+		/**
+		 * @brief Сколько дней от этой даты до указанной
+		 * @param other - дата, до которой считаем
+		 * @return число дней; отрицательное, если @p other раньше этой даты
+		 */
+		int daysUntil(const Date& other) const noexcept;
 
-    /** @brief Возвращает true, если @p year - високосный год. */
-    static bool IsLeapYear(const int year);
+		/**
+		 * @brief Стандартный оператор сравнения "меньше"
+		 * @param other - вторая дата
+		 * @return true, если эта дата раньше @p other
+		 */
+		bool operator<(const Date& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "меньше или равно"
+		 * @param other - вторая дата
+		 * @return true, если эта дата не позже @p other
+		 */
+		bool operator<=(const Date& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "больше"
+		 * @param other - вторая дата
+		 * @return true, если эта дата позже @p other
+		 */
+		bool operator>(const Date& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - вторая дата
+		 * @return true, если даты совпадают по всем компонентам
+		 */
+		bool operator==(const Date& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - вторая дата
+		 * @return true, если даты различаются
+		 */
+		bool operator!=(const Date& other) const noexcept;
 };

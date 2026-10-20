@@ -1,85 +1,62 @@
-//
-// Person.cpp
-// Реализация абстрактного базового класса Person.
-//
 #include "Person.h"
-#include "FormatUtils.h"
 
 #include <stdexcept>
 
-namespace {
-    /**
-     * @brief Выдаёт следующий свободный идентификатор человека.
-     *        Счётчик один на всю программу и монотонно растёт, поэтому
-     *        два разных объекта Person не могут получить одинаковый id.
-     * @return Уникальный идентификатор, начиная с 1.
-     */
-    int NextPersonId() {
-        static int nextId = 1;
-        return nextId++;
-    }
+#include "FormatUtils.h"
+
+int Person::nextId = 1;
+
+Person::Person(const std::string& fullName, const Date& birthDate, const int id)
+	: id(id > 0 ? id : nextId++), fullName(FormatUtils::trim(fullName)), birthDate(birthDate) {
+	if (this->fullName.empty()) {
+		throw std::invalid_argument("ФИО человека не может быть пустым");
+	}
+	if (this->id >= nextId) {
+		nextId = this->id + 1;
+	}
 }
 
-Person::Person(std::string fullName, Date birthDate)
-    : fullName_(std::move(fullName))
-    , birthDate_(birthDate)
-{
-    if (FormatUtils::Trim(fullName_).empty()) {
-        throw std::invalid_argument("Person: ФИО не может быть пустым");
-    }
-    fullName_ = FormatUtils::Trim(fullName_);
+int Person::getId() const noexcept {return id;}
+
+const std::string& Person::getFullName() const noexcept {return fullName;}
+
+const Date& Person::getBirthDate() const noexcept {return birthDate;}
+
+void Person::setFullName(const std::string& newFullName) {
+	const std::string trimmedName = FormatUtils::trim(newFullName);
+	if (trimmedName.empty()) {
+		throw std::invalid_argument("ФИО человека не может быть пустым");
+	}
+	this->fullName = trimmedName;
 }
 
-const std::string& Person::GetFullName() const {
-    return fullName_;
+std::string Person::getShortInfo() const {
+	return FormatUtils::toInitials(fullName) + " (" + birthDate.toString() + ")";
 }
 
-const Date& Person::GetBirthDate() const {
-    return birthDate_;
+std::string Person::getInfo() const {
+	return "ID: " + std::to_string(id) +
+		" | ФИО: " + fullName +
+		" | Дата рождения: " + birthDate.toString() +
+		" | Роль: " + getRole() +
+		" | " + getSpecificInfo();
 }
 
-void Person::SetFullName(const std::string& fullName) {
-    if (FormatUtils::Trim(fullName).empty()) {
-        throw std::invalid_argument("Person: ФИО не может быть пустым");
-    }
-    fullName_ = FormatUtils::Trim(fullName);
+int Person::getAge(const Date& referenceDate) const noexcept {
+	int years = referenceDate.getYear() - birthDate.getYear();
+	const bool birthdayIsYetToCome =
+		referenceDate.getMonth() < birthDate.getMonth() ||
+		(referenceDate.getMonth() == birthDate.getMonth() && referenceDate.getDay() < birthDate.getDay());
+	if (birthdayIsYetToCome) {
+		--years;
+	}
+	return years < 0 ? 0 : years;
 }
 
-int Person::GetAge(const Date& asOf) const {
-    if (asOf < birthDate_) {
-        return 0; // дата рождения ещё не наступила
-    }
+bool Person::isStudent() const {return false;}
 
-    int age = asOf.GetYear() - birthDate_.GetYear();
-    // Возраст не подрос, если день рождения в текущем году ещё не наступил.
-    const bool birthdayNotYet = (asOf.GetMonth() < birthDate_.GetMonth())
-        || (asOf.GetMonth() == birthDate_.GetMonth() && asOf.GetDay() < birthDate_.GetDay());
-    if (birthdayNotYet) {
-        --age;
-    }
-    return age;
-}
+bool Person::isTeacher() const {return false;}
 
-std::string Person::GetInfo() const {
-    return GetRole() + ": " + GetShortInfo() + " (" + GetSpecificInfo() + ")";
-}
+bool Person::operator==(const Person& other) const noexcept {return id == other.id;}
 
-std::string Person::GetShortInfo() const {
-    return FormatUtils::ToInitials(fullName_);
-}
-
-bool Person::IsStudent() const {
-    return false;
-}
-
-bool Person::IsTeacher() const {
-    return false;
-}
-
-bool Person::operator==(const Person& other) const {
-    return fullName_ == other.fullName_ && birthDate_ == other.birthDate_;
-}
-
-bool Person::operator!=(const Person& other) const {
-    return !(*this == other);
-}
+bool Person::operator!=(const Person& other) const noexcept {return !(*this == other);}

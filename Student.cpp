@@ -1,87 +1,64 @@
-//
-// Student.cpp
-// Реализация типа-наследника Student.
-//
 #include "Student.h"
-#include "Group.h"
-#include "Specialty.h"
-#include "FormatUtils.h"
 
 #include <stdexcept>
 
-Student(const std::string& fullName, const Date birthDate, const std::string& recordBook,
-        const unsigned course, const Group& group);
-    : Person(fullName, birthDate)      // инициализация базового класса
-    , recordBook_(recordBook)
-    , course_(course)
-    , group_(group)
-{
-    if (FormatUtils::Trim(recordBook_).empty()) {
-        throw std::invalid_argument("Student: номер зачётной книжки не может быть пустым");
-    }
-    if (course == 0) {
-        throw std::invalid_argument("Student: номер курса должен быть больше нуля");
-    }
-    if (group == nullptr) {
-        throw std::invalid_argument("Student: студент должен состоять в группе");
-    }
-    recordBook_ = FormatUtils::Trim(recordBook_);
+#include "FormatUtils.h"
+
+Student::Student(const std::string& fullName, const Date& birthDate, const std::string& recordBook,
+	const unsigned int course, const int id)
+	: Person(fullName, birthDate, id), recordBook(FormatUtils::trim(recordBook)), course(course) {
+	if (this->recordBook.empty()) {
+		throw std::invalid_argument("Номер зачётной книжки не может быть пустым");
+	}
+	if (course < 1) {
+		throw std::invalid_argument("Номер курса должен быть не меньше 1");
+	}
 }
 
-const std::string& Student::GetRecordBook() const {
-    return recordBook_;
+const std::string& Student::getRecordBook() const noexcept {return recordBook;}
+
+unsigned int Student::getCourse() const noexcept {return course;}
+
+void Student::addMark(const double mark) {
+	if (mark < 2.0 || mark > 5.0) {
+		throw std::invalid_argument("Оценка должна быть в диапазоне от 2 до 5");
+	}
+	marks.push_back(mark);
 }
 
-unsigned Student::GetCourse() const {
-    return course_;
+const std::vector<double>& Student::getMarks() const noexcept {return marks;}
+
+std::size_t Student::getMarkCount() const noexcept {return marks.size();}
+
+bool Student::hasMarks() const noexcept {return !marks.empty();}
+
+double Student::getAverageMark() const noexcept {
+	if (marks.empty()) {
+		return 0.0;
+	}
+	double sum = 0.0;
+	for (const double mark : marks) {
+		sum += mark;
+	}
+	return sum / static_cast<double>(marks.size());
 }
 
-const Group* Student::GetGroup() const {
-    return group_;
+std::string Student::getRole() const {return "Студент";}
+
+std::string Student::getSpecificInfo() const {
+	std::string result = "Зачётная книжка: " + recordBook +
+		" | Курс: " + std::to_string(course) +
+		" | Оценок: " + std::to_string(marks.size());
+	if (hasMarks()) {
+		result += " | Средний балл: " + FormatUtils::formatDecimal(getAverageMark());
+	}
+	return result;
 }
 
-void Student::AddMark(const double mark) {
-    if (mark < 1.0 || mark > 5.0) {
-        throw std::invalid_argument("Student: оценка должна быть в диапазоне от 1 до 5");
-    }
-    marks_.push_back(mark);
+bool Student::isStudent() const {return true;}
+
+bool Student::operator==(const Student& other) const noexcept {
+	return id == other.id && recordBook == other.recordBook;
 }
 
-double Student::GetAverageMark() const {
-    if (marks_.empty()) {
-        return 0.0;
-    }
-    double sum = 0.0;
-    for (double mark : marks_) {
-        sum += mark;
-    }
-    return sum / static_cast<double>(marks_.size());
-}
-
-bool Student::IsStudent() const {
-    return true;
-}
-
-std::string Student::GetRole() const {
-    return "Студент";
-}
-
-std::string Student::GetInfo() const {
-    const Specialty* specialty = group_->GetSpecialty();
-    const std::string specialtyName = (specialty != nullptr) ? specialty->GetName() : "не определена";
-
-    return "Студент: " + GetFullName()
-        + " | зачётная книжка: " + recordBook_
-        + " | курс: " + std::to_string(course_)
-        + " | группа: " + group_->GetNumber()
-        + " | специальность: " + specialtyName
-        + " | средний балл: " + FormatUtils::FormatDecimal(GetAverageMark());
-}
-
-std::string Student::GetShortInfo() const {
-    return FormatUtils::ToInitials(GetFullName()) + " (гр. " + group_->GetNumber() + ")";
-}
-
-std::string Student::GetSpecificInfo() const {
-    return "зачётная книжка " + recordBook_ + ", курс " + std::to_string(course_);
-}
+bool Student::operator!=(const Student& other) const noexcept {return !(*this == other);}

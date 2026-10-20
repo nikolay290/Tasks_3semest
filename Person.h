@@ -1,129 +1,128 @@
 #pragma once
-//
-// Person.h
-// Абстрактный базовый класс "Человек" - общий предок студентов и
-// преподавателей ВУЗа.
-//
-// Именно этот класс используется как БАЗОВЫЙ ТИП коллекции в main.cpp:
-// в std::vector<std::shared_ptr<Person>> помещаются объекты типов-наследников
-// (Student, Teacher), и коллекция обходится как коллекция базового класса.
-//
-// Важно: библиотека нигде не использует потоки ввода-вывода (<iostream>,
-// <fstream>, <sstream> и т.п.) - весь вывод собирается в обычные
-// std::string и печатается вызывающим кодом (см. UniversityApp/main.cpp).
-//
+
 #include <string>
+
 #include "Date.h"
 
 /**
- * @brief Абстрактный базовый класс любого человека, обучающегося или
- *        работающего в ВУЗе. Хранит ФИО и дату рождения, объявляет
- *        точки расширения (GetRole / GetInfo), которые переопределяют
- *        классы-наследники, добавляя собственные данные.
+ * @brief Класс Person
  */
 class Person {
-public:
-    /**
-     * @brief Создаёт человека с его общими атрибутами.
-     * @param fullName   Фамилия, имя и отчество.
-     * @param birthDate  Дата рождения.
-     * @throws std::invalid_argument если ФИО пустое.
-     */
-    Person(const std::string fullName, const Date birthDate);
+	protected:
+		/**
+		 * @brief Статический счетчик ID
+		 */
+		static int nextId;
 
-    /** @brief Виртуальный деструктор, необходим для полиморфных базовых классов. */
-    virtual ~Person() = default;
+		/**
+		 * @brief id человека из списка
+		 */
+		int id;
 
-    /** @brief Возвращает ФИО. */
-    const std::string& GetFullName() const;
+		/**
+		 * @brief ФИО человека
+		 */
+		std::string fullName;
 
-    /** @brief Возвращает дату рождения. */
-    const Date& GetBirthDate() const;
+		/**
+		 * @brief Дата рождения
+		 */
+		Date birthDate;
 
-    /** @brief Возвращает уникальный идентификатор человека. */
-    int GetId() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param fullName - ФИО человека
+		 * @param birthDate - дата рождения
+		 * @param id - id человека (0 для автогенерации)
+		 * @throws std::invalid_argument если ФИО пустое
+		 */
+		Person(const std::string& fullName, const Date& birthDate, const int id = 0);
 
-    /**
-     * @brief Устанавливает новое ФИО.
-     * @param fullName Новое ФИО.
-     * @throws std::invalid_argument если ФИО пустое.
-     */
-    void SetFullName(const std::string& fullName);
+		/**
+		 * @brief Виртуальный деструктор
+		 */
+		virtual ~Person() = default;
 
-    /**
-     * @brief Возвращает возраст в полных годах на дату @p asOf.
-     * @param asOf Дата, на которую считается возраст.
-     * @return Полных прожитых лет; 0, если дата рождения ещё не наступила.
-     */
-    int GetAge(const Date& asOf) const;
+		/**
+		 * @brief Получить id человека
+		 * @return id человека
+		 */
+		int getId() const noexcept;
 
-    /**
-     * @brief Возвращает роль человека в ВУЗе ("Студент", "Преподаватель").
-     *        Переопределяется в каждом классе-наследнике.
-     * @return Название роли.
-     */
-    virtual std::string GetRole() const = 0;
+		/**
+		 * @brief Получить ФИО человека
+		 * @return ФИО человека
+		 */
+		const std::string& getFullName() const noexcept;
 
-    /**
-     * @brief Формирует однострочное человекочитаемое описание человека:
-     *        общие поля плюс поля, специфичные для конкретной роли
-     *        (через GetSpecificInfo()).
-     * @return Отформатированная строка с описанием (без завершающего перевода строки).
-     */
-    virtual std::string GetInfo() const;
+		/**
+		 * @brief Получить дату рождения
+		 * @return дату рождения
+		 */
+		const Date& getBirthDate() const noexcept;
 
-    /**
-     * @brief Возвращает краткое представление человека: "Фамилия И. О.".
-     *        Используется в отчётах, где не нужно перечислять все поля.
-     * @return Краткое описание.
-     */
-    virtual std::string GetShortInfo() const;
+		/**
+		 * @brief Задать новое ФИО человека
+		 * @param newFullName - новое ФИО
+		 * @throws std::invalid_argument если ФИО пустое
+		 */
+		void setFullName(const std::string& newFullName);
 
-    /**
-     * @brief Возвращает true, если человек является студентом.
-     *        Позволяет различать типы элементов коллекции базового типа
-     *        без dynamic_cast (см. IsStudent() в наследниках).
-     * @return true для Student, false иначе.
-     */
-    virtual bool IsStudent() const;
+		/**
+		 * @brief Получить роль человека в ВУЗе
+		 * @return название роли, например "Студент"
+		 */
+		virtual std::string getRole() const = 0;
 
-    /**
-     * @brief Возвращает true, если человек является преподавателем.
-     * @return true для Teacher, false иначе.
-     */
-    virtual bool IsTeacher() const;
+		/**
+		 * @brief Получить сведения, характерные для конкретной роли
+		 * @return строку с данными роли
+		 */
+		virtual std::string getSpecificInfo() const = 0;
 
-    /** @brief Сравнение на равенство по ФИО и дате рождения. 
-    * @param other Человек, с которым сравнивается текущий объект.
-    * @return true, если введённая информация о студенте имеет то же ФИО (побайтово) и ту же дату
-    * рождения; false, если хотя бы одно из этих полей различается.
-    */
-    bool operator==(const Person& other) const;
-    /** @brief Сравнение на неравенство, отрицание operator==.
-    * @param other Человек, с которым сравнивается текущий объект.
-    *@return true, если введённая информация о студенте отличается от текущего объекта по ФИО
-    *или по дате рождения; false, если оба поля совпадают.
-    */
-    bool operator!=(const Person& other) const;
+		/**
+		 * @brief Получить краткое представление человека
+		 * @return строку вида "Иванов И. И. (2000-01-01)"
+		 */
+		virtual std::string getShortInfo() const;
 
-protected:
-    /**
-     * @brief Возвращает часть описания, специфичную для роли (например,
-     *        номер зачётной книжки для Student). Реализуется в каждом
-     *        классе-наследнике.
-     * @return Короткая строка с деталями, специфичными для роли.
-     */ 
-    virtual std::string GetSpecificInfo() const = 0;
+		/**
+		 * @brief Получить полную информацию о человеке
+		 * @return строку с id, ФИО, датой рождения и данными роли
+		 */
+		virtual std::string getInfo() const;
 
-    std::string fullName_;
-    Date birthDate_;
-    /**
-     * @brief Уникальный идентификатор человека. Лежит в protected, а не в
-     *        private, чтобы классы-наследники (Student, Teacher) могли
-     *        использовать его в своей логике (например, в описаниях),
-     *        не запрашивая геттер. Присваивается один раз в конструкторе
-     *        Person и дальше не меняется.
-     */
-    int id_;
-};
+		/**
+		 * @brief Получить возраст человека на указанную дату
+		 * @param referenceDate - дата, на которую считаем возраст
+		 * @return возраст в полных годах
+		 */
+		int getAge(const Date& referenceDate) const noexcept;
+
+		/**
+		 * @brief Проверить, является ли человек студентом
+		 * @return true, если человек студент
+		 */
+		virtual bool isStudent() const;
+
+		/**
+		 * @brief Проверить, является ли человек преподавателем
+		 * @return true, если человек преподаватель
+		 */
+		virtual bool isTeacher() const;
+
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - второй человек
+		 * @return true, если id людей совпадают
+		 */
+		bool operator==(const Person& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - второй человек
+		 * @return true, если id людей различаются
+		 */
+		bool operator!=(const Person& other) const noexcept;
 };

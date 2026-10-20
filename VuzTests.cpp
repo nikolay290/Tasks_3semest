@@ -1,7 +1,5 @@
 //
 // VuzTests.cpp
-// Все модульные тесты проекта на встроенном в Visual Studio фреймворке
-// Microsoft CppUnitTest:
 //   - TEST_CLASS(DateTests)             - класс Date;
 //   - TEST_CLASS(PersonTests)           - базовый класс Person и
 //                                         полиморфный обход коллекции;

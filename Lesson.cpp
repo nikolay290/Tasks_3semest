@@ -1,124 +1,100 @@
-//
-// Lesson.cpp
-// Реализация класса Lesson.
-//
 #include "Lesson.h"
-#include "Discipline.h"
-#include "Group.h"
-#include "Teacher.h"
-#include "FormatUtils.h"
 
 #include <stdexcept>
 
-const std::string ToString(LessonType type) {
-    switch (type) {
-    case LessonType::Lecture:   return "Лекция";
-    case LessonType::Practical: return "Практика";
-    case LessonType::Lab:       return "Лабораторная работа";
-    }
-    return "Неизвестное занятие";
+#include "FormatUtils.h"
+#include "Group.h"
+
+std::string toString(const LessonType type) {
+	switch (type) {
+		case LessonType::Lecture:
+			return "Лекция";
+		case LessonType::Practical:
+			return "Практическое занятие";
+		case LessonType::Lab:
+			return "Лабораторная работа";
+		default:
+			return "Неизвестный вид занятия";
+	}
 }
 
-void Lesson::Validate(LessonType type, const Discipline& discipline, const Group& group,
-    const Teacher& teacher, const Teacher& secondTeacher) {
-    if (discipline == nullptr) {
-        throw std::invalid_argument("Lesson: у занятия должна быть дисциплина");
-    }
-    if (group == nullptr) {
-        throw std::invalid_argument("Lesson: у занятия должна быть группа");
-    }
-    if (teacher == nullptr) {
-        throw std::invalid_argument("Lesson: у занятия должен быть преподаватель");
-    }
-    if (secondTeacher != nullptr && secondTeacher == teacher) {
-        throw std::invalid_argument("Lesson: второй преподаватель должен отличаться от основного");
-    }
-
-    // Предметная особенность ВУЗа: лабораторные работы ведут два преподавателя.
-    if (type == LessonType::Lab && secondTeacher == nullptr) {
-        throw std::invalid_argument("Lesson: лабораторную работу ведут два преподавателя");
-    }
-    if (type != LessonType::Lab && secondTeacher != nullptr) {
-        throw std::invalid_argument("Lesson: второй преподаватель положен только на лабораторной работе");
-    }
+Lesson::Lesson(const LessonType& type, const Discipline& discipline, const Group& group,
+	const Teacher& teacher, const Teacher* secondTeacher, const std::string& room,
+	const Date& date)
+	: type(type), discipline(discipline), groupNumber(group.getNumber()), room(room), date(date) {
+	if (type == LessonType::Lab) {
+		if (secondTeacher == nullptr) {
+			throw std::invalid_argument("Лабораторную работу должен вести второй преподаватель");
+		}
+		if (teacher.getId() == secondTeacher->getId()) {
+			throw std::invalid_argument("Лабораторную работу должны вести два разных преподавателя");
+		}
+		teachers.push_back(teacher);
+		teachers.push_back(*secondTeacher);
+		return;
+	}
+	if (secondTeacher != nullptr) {
+		throw std::invalid_argument("Второй преподаватель нужен только для лабораторной работы");
+	}
+	teachers.push_back(teacher);
 }
 
-Lesson::Lesson(LessonType type, const Discipline& discipline, const Group& group,
-    const Teacher& teacher, const Teacher& secondTeacher, const std::string& room, Date date)
-    : type_(type)
-    , discipline_(discipline)
-    , group_(group)
-    , teacher_(teacher)
-    , secondTeacher_(secondTeacher)
-    , room_(room)
-    , date_(date)
-{
-    Validate(type, discipline, group, teacher, secondTeacher);
-    room_ = FormatUtils::Trim(room_);
+LessonType Lesson::getType() const noexcept {return type;}
+
+const Discipline& Lesson::getDiscipline() const noexcept {return discipline;}
+
+const std::string& Lesson::getGroupNumber() const noexcept {return groupNumber;}
+
+const std::vector<Teacher>& Lesson::getTeachers() const noexcept {return teachers;}
+
+std::size_t Lesson::getTeacherCount() const noexcept {return teachers.size();}
+
+const std::string& Lesson::getRoom() const noexcept {return room;}
+
+const Date& Lesson::getDate() const noexcept {return date;}
+
+bool Lesson::isTaughtBy(const Teacher& teacher) const noexcept {
+	for (const Teacher& lessonTeacher : teachers) {
+		if (lessonTeacher.getId() == teacher.getId()) {
+			return true;
+		}
+	}
+	return false;
 }
 
-LessonType Lesson::GetType() const {
-    return type_;
+std::string Lesson::getShortInfo() const {
+	return toString(type) + " | " + discipline.getShortInfo() + " | группа " + groupNumber;
 }
 
-const Discipline& Lesson::GetDiscipline() const {
-    return discipline_;
+std::string Lesson::getInfo() const {
+	std::vector<std::string> teacherNames;
+	for (const Teacher& lessonTeacher : teachers) {
+		teacherNames.push_back(lessonTeacher.getFullName());
+	}
+	std::string result = getShortInfo();
+	result += " | " + FormatUtils::join(teacherNames, ", ");
+	if (!room.empty()) {
+		result += " | ауд. " + room;
+	}
+	result += " | " + date.toString();
+	return result;
 }
 
-const Group& Lesson::GetGroup() const {
-    return group_;
+bool Lesson::operator==(const Lesson& other) const noexcept {
+	if (type != other.type ||
+		discipline != other.discipline ||
+		groupNumber != other.groupNumber ||
+		room != other.room ||
+		date != other.date ||
+		teachers.size() != other.teachers.size()) {
+		return false;
+	}
+	for (const Teacher& lessonTeacher : teachers) {
+		if (!other.isTaughtBy(lessonTeacher)) {
+			return false;
+		}
+	}
+	return true;
 }
 
-const Teacher& Lesson::GetTeacher() const {
-    return teacher_;
-}
-
-const Teacher& Lesson::GetSecondTeacher() const {
-    return secondTeacher_;
-}
-
-std::vector<const Teacher*> Lesson::GetTeachers() const {
-    std::vector<const Teacher*> result;
-    result.push_back(teacher_);
-    if (secondTeacher_ != nullptr) {
-        result.push_back(secondTeacher_);
-    }
-    return result;
-}
-
-size_t Lesson::GetTeacherCount() const {
-    return (secondTeacher_ == nullptr) ? 1u : 2u;
-}
-
-const std::string& Lesson::GetRoom() const {
-    return room_;
-}
-
-const Date& Lesson::GetDate() const {
-    return date_;
-}
-
-bool Lesson::IsTaughtBy(const Teacher& teacher) const {
-    if (teacher == nullptr) {
-        return false;
-    }
-    return teacher == teacher_ || teacher == secondTeacher_;
-}
-
-std::string Lesson::GetShortInfo() const {
-    return std::string(ToString(type_)) + ": " + discipline_->GetName();
-}
-
-std::string Lesson::GetInfo() const {
-    std::vector<std::string> teacherNames;
-    for (const Teacher& teacher : GetTeachers()) {
-        teacherNames.push_back(FormatUtils::ToInitials(teacher->GetFullName())
-            + " (" + teacher->GetPosition() + ")");
-    }
-
-    return "Занятие: " + GetShortInfo()
-        + " | группа: " + group_->GetNumber()
-        + " | преподаватели: " + FormatUtils::Join(teacherNames, ", ")
-        + " | аудитория: " + (room_.empty() ? "не указана" : room_)
-        + " | дата: " + date_.ToString();
-}
+bool Lesson::operator!=(const Lesson& other) const noexcept {return !(*this == other);}

@@ -1,81 +1,48 @@
 #pragma once
-//
-// Department.h
-// Класс "Кафедра" ВУЗ.
-//
-// Кафедра ведёт занятия по нескольким дисциплинам и имеет штат
-// преподавателей. Кафедра владеет своими дисциплинами (композиция).
-//
-#include <memory>
-#include <string>
-#include <vector>
 
-class Discipline;
-class Teacher;
+#include <string>
 
 /**
- * @brief Кафедра ВУЗа с её дисциплинами и преподавателями.
+ * @brief Класс Кафедра
  */
 class Department {
-public:
-    /**
-     * @brief Создаёт кафедру.
-     * @param name Название кафедры.
-     * @throws std::invalid_argument если название пустое.
-     */
-    explicit Department(const std::string& name);
+	private:
+		/**
+		 * @brief Название кафедры
+		 */
+		std::string name;
 
-    /** @brief Возвращает название кафедры. */
-    const std::string& GetName() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param name - название кафедры
+		 * @throws std::invalid_argument если название пустое
+		 */
+		explicit Department(const std::string& name);
 
-    /**
-     * @brief Заводит новую дисциплину кафедры.
-     * @param disciplineName Название дисциплины.
-     * @return Умный указатель на созданную дисциплину.
-     * @throws std::invalid_argument если название пустое или такая
-     *         дисциплина уже читается кафедрой.
-     */
-    std::shared_ptr<Discipline> AddDiscipline(const std::string& disciplineName);
+		/**
+		 * @brief Получить название кафедры
+		 * @return название кафедры
+		 */
+		const std::string& getName() const noexcept;
 
-    /** @brief Возвращает дисциплины, читаемые кафедрой. */
-    const std::vector<std::shared_ptr<Discipline>>& GetDisciplines() const;
+		/**
+		 * @brief Получить полную информацию о кафедре
+		 * @return строка с названием кафедры
+		 */
+		std::string getInfo() const;
 
-    /** @brief Возвращает число дисциплин кафедры. */
-    size_t GetDisciplineCount() const;
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - вторая кафедра
+		 * @return true, если названия кафедр совпадают
+		 */
+		bool operator==(const Department& other) const noexcept;
 
-    /**
-     * @brief Регистрирует преподавателя кафедры (ссылка не владеющая:
-     *        преподавателями владеет University).
-     * @param teacher Преподаватель для регистрации.
-     * @return true, если преподаватель добавлен; false, если уже был в списке.
-     * @throws std::invalid_argument если @p teacher равен nullptr.
-     */
-    bool AddTeacher(const Teacher& teacher);
-
-    /** @brief Возвращает преподавателей кафедры. */
-    const std::vector& GetTeachers() const;
-
-    /** @brief Возвращает число преподавателей кафедры. */
-    size_t GetTeacherCount() const;
-
-    /**
-     * @brief Ищет дисциплину кафедры по названию (регистронезависимо).
-     * @param disciplineName Название дисциплины.
-     * @return Умный указатель на дисциплину либо nullptr, если не найдена.
-     */
-    std::shared_ptr<Discipline> FindDisciplineByName(const std::string& disciplineName) const;
-
-    /** @brief Возвращает краткое представление: название кафедры. */
-    std::string GetShortInfo() const;
-
-    /**
-     * @brief Формирует описание кафедры с перечнем читаемых дисциплин.
-     * @return Отформатированная строка с описанием.
-     */
-    std::string GetInfo() const;
-
-private:
-    std::string name_;
-    std::vector<Discipline> disciplines_;
-    std::vector<Teacher> teachers_;
-}
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - вторая кафедра
+		 * @return true, если кафедры различаются
+		 */
+		bool operator!=(const Department& other) const noexcept;
+};

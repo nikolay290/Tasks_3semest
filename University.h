@@ -1,239 +1,271 @@
 #pragma once
-//
-// University.h
-// Класс "University" - ВУЗ как единый агрегат предметной области.
-//
-// Владеет всеми объектами (кафедрами, дисциплинами, специальностями,
-// группами, студентами, преподавателями, занятиями) и реализует четыре
-// запроса варианта "ВУЗ":
-//
-//   1) выдавать информацию о студенте по № зачётной книжки и по ФИО;
-//   2) выдавать список предметов, читаемых данной кафедрой;
-//   3) выдавать список преподавателей, проводящих занятия в данной группе;
-//   4) выдавать список групп, обучающихся на данной специальности.
-//
-// Класс не использует потоки ввода-вывода: все ответы возвращаются в виде
-// std::string / контейнеров STL, а выводом занимается приложение.
-//
-#include <memory>
+
 #include <string>
 #include <vector>
+
 #include "Date.h"
+#include "Department.h"
+#include "Discipline.h"
+#include "Group.h"
 #include "Lesson.h"
+#include "Specialty.h"
+#include "Teacher.h"
 
-class Department;
-class Discipline;
-class Group;
-class Lesson;
 class Person;
-class Specialty;
 class Student;
-class Teacher;
 
+/**
+ * @brief Класс University
+ */
 class University {
-public:
-    /**
-     * @brief Создаёт пустой ВУЗ с названием по умолчанию "ВУЗ".
-     */
-    University();
+	private:
+		/**
+		 * @brief Название ВУЗа
+		 */
+		std::string name;
 
-    /** @brief Виртуальный деструктор (корни дерева владения). */
-    ~University();
+		/**
+		 * @brief Массив специальностей
+		 */
+		std::vector<Specialty> specialties;
 
-    // ---- Создание объектов предметной области ----
+		/**
+		 * @brief Массив кафедр
+		 */
+		std::vector<Department> departments;
 
-    /**
-     * @brief Добавляет специальность.
-     * @param code Код специальности.
-     * @param name Название специальности.
-     * @return Умный указатель на созданную специальность.
-     * @throws std::invalid_argument если такая специальность уже есть.
-     */
-    std::shared_ptr<Specialty> AddSpecialty(const std::string& code, const std::string& name);
+		/**
+		 * @brief Массив дисциплин
+		 */
+		std::vector<Discipline> disciplines;
 
-    /**
-     * @brief Добавляет кафедру.
-     * @param name Название кафедры.
-     * @return Умный указатель на созданную кафедру.
-     * @throws std::invalid_argument если такая кафедра уже есть.
-     */
-    std::shared_ptr<Department> AddDepartment(const std::string& name);
+		/**
+		 * @brief Массив групп
+		 */
+		std::vector<Group> groups;
 
-    /**
-     * @brief Создаёт группу на специальности и регистрирует её в ней.
-     * @param number    Номер группы.
-     * @param specialty Специальность, на которой обучается группа.
-     * @return Умный указатель на созданную группу.
-     * @throws std::invalid_argument если номер группы уже занят или
-     *         @p specialty равен nullptr.
-     */
-    std::shared_ptr<Group> AddGroup(const std::string& number, Specialty* specialty);
+		/**
+		 * @brief Массив преподавателей
+		 */
+		std::vector<Teacher> teachers;
 
-    /**
-     * @brief Добавляет преподавателя на кафедру.
-     * @param fullName   ФИО.
-     * @param birthDate  Дата рождения.
-     * @param position   Должность.
-     * @param degree     Учёная степень (может быть пустой).
-     * @param department Кафедра, на которой работает преподаватель.
-     * @return Умный указатель на созданного преподавателя.
-     * @throws std::invalid_argument если @p department равен nullptr.
-     */
-    std::shared_ptr<Teacher> AddTeacher(const std::string& fullName, Date birthDate,
-        const std::string& position, const std::string& degree, Department* department);
+		/**
+		 * @brief Массив занятий
+		 */
+		std::vector<Lesson> lessons;
 
-    /**
-     * @brief Добавляет занятие. Занятие автоматически регистрируется
-     *        у преподавателей (они запоминают, в каких группах ведут
-     *        занятия) - это нужно третьему запросу.
-     * @param type          Вид занятия.
-     * @param discipline    Дисциплина.
-     * @param group         Группа-участник.
-     * @param teacher       Основной преподаватель.
-     * @param secondTeacher Второй преподаватель (только для лабораторной).
-     * @param room          Аудитория.
-     * @param date          Дата проведения.
-     * @return Умный указатель на созданное занятие.
-     * @throws std::invalid_argument при нарушении доменных правил занятия.
-     *
-     * @note Преподаватели передаются неконстантными указателями намеренно:
-     *       University - их владелец и обновляет их список групп, поэтому
-     *       константность здесь была бы фиктивной.
-     */
-    std::shared_ptr AddLesson(const LessonType& type, const Discipline& discipline,
-        const Group& group, const Teacher& teacher, const Teacher& secondTeacher,
-        const std::string& room, const Date& date);
+	public:
+		/**
+		 * @brief Конструктор по умолчанию
+		 */
+		University();
 
-    // ---- Общий доступ ----
+		/**
+		 * @brief Конструктор
+		 * @param name - название ВУЗа
+		 * @throws std::invalid_argument если название пустое
+		 */
+		explicit University(const std::string& name);
 
-    /** @brief Возвращает название ВУЗа. */
-    const std::string& GetName() const;
+		/**
+		 * @brief Деструктор
+		 */
+		~University() = default;
 
-    /**
-     * @brief Устанавливает название ВУЗ��.
-     * @param name Новое название.
-     * @throws std::invalid_argument если название пустое.
-     */
-    void SetName(const std::string& name);
+		/**
+		 * @brief Получить название ВУЗа
+		 * @return название ВУЗа
+		 */
+		const std::string& getName() const noexcept;
 
-    /** @brief Возвращает все специальности ВУЗа. */
-    const std::vector<std::shared_ptr<Specialty>>& GetSpecialties() const;
+		/**
+		 * @brief Задать название ВУЗа
+		 * @param newName - новое название
+		 * @throws std::invalid_argument если название пустое
+		 */
+		void setName(const std::string& newName);
 
-    /** @brief Возвращает все кафедры ВУЗа. */
-    const std::vector<std::shared_ptr<Department>>& GetDepartments() const;
+		/**
+		 * @brief Добавить специальность
+		 * @param specialty - специальность
+		 * @throws std::invalid_argument если специальность с таким кодом уже есть
+		 */
+		void addSpecialty(const Specialty& specialty);
 
-    /** @brief Возвращает все группы ВУЗа. */
-    const std::vector<std::shared_ptr<Group>>& GetGroups() const;
+		/**
+		 * @brief Добавить кафедру
+		 * @param department - кафедра
+		 * @throws std::invalid_argument если кафедра с таким названием уже есть
+		 */
+		void addDepartment(const Department& department);
 
-    /** @brief Возвращает всех преподавателей ВУЗа. */
-    const std::vector<std::shared_ptr<Teacher>>& GetTeachers() const;
+		/**
+		 * @brief Добавить дисциплину
+		 * @param discipline - дисциплина
+		 * @throws std::invalid_argument если дисциплина с таким названием уже есть
+		 */
+		void addDiscipline(const Discipline& discipline);
 
-    /** @brief Возвращает все занятия ВУЗа. */
-    const std::vector<std::shared_ptr<Lesson>>& GetLessons() const;
+		/**
+		 * @brief Добавить группу
+		 * @param group - группа, уже заполненная студентами
+		 * @throws std::invalid_argument если группа с таким номером уже есть
+		 */
+		void addGroup(const Group& group);
 
-    // ---- Запрос 1: информация о студенте по № зачётной книжки и по ФИО ----
+		/**
+		 * @brief Добавить преподавателя
+		 * @param teacher - преподаватель
+		 * @throws std::invalid_argument если преподаватель с таким id уже есть
+		 */
+		void addTeacher(const Teacher& teacher);
 
-    /**
-     * @brief Ищет студента по номеру зачётной книжки (регистронезависимо).
-     * @param recordBook Номер зачётной книжки.
-     * @return Умный указатель на студента либо nullptr, если не найден.
-     */
-    std::shared_ptr<Student> FindStudentByRecordBook(const std::string& recordBook) const;
+		/**
+		 * @brief Добавить занятие
+		 * @param lesson - занятие
+		 * @throws std::invalid_argument если занятие ведёт неизвестный
+		 *         преподаватель
+		 */
+		void addLesson(const Lesson& lesson);
 
-    /**
-     * @brief Ищет студентов по ФИО (по вхождению подстроки, регистронезависимо).
-     *        Одному ФИО может соответствовать несколько студентов.
-     * @param fullName ФИО или его часть.
-     * @return Все подходящие студенты.
-     */
-    std::vector<std::shared_ptr<Student>> FindStudentsByFullName(const std::string& fullName) const;
+		/**
+		 * @brief Получить список специальностей
+		 * @return ссылку на массив специальностей
+		 */
+		const std::vector<Specialty>& getSpecialties() const noexcept;
 
-    // ---- Запрос 2: список предметов, читаемых данной кафедрой ----
+		/**
+		 * @brief Получить список кафедр
+		 * @return ссылку на массив кафедр
+		 */
+		const std::vector<Department>& getDepartments() const noexcept;
 
-    /**
-     * @brief Возвращает предметы, читаемые указанной кафедрой.
-     * @param department Кафедра-запрос.
-     * @return Дисциплины кафедры; пустой вектор, если @p department неизвестна.
-     */
-    std::vector<std::shared_ptr<Discipline>> GetDisciplinesByDepartment(const Department* department) const;
+		/**
+		 * @brief Получить список дисциплин
+		 * @return ссылку на массив дисциплин
+		 */
+		const std::vector<Discipline>& getDisciplines() const noexcept;
 
-    // ---- Запрос 3: список преподавателей, ведущих занятия в группе ----
+		/**
+		 * @brief Получить список групп
+		 * @return ссылку на массив групп
+		 */
+		const std::vector<Group>& getGroups() const noexcept;
 
-    /**
-     * @brief Возвращает преподавателей, проводящих занятия в указанной группе.
-     *        Учитываются в том числе вторые преподаватели лабораторных работ;
-     *        повторы исключаются.
-     * @param group Группа-запрос.
-     * @return Преподаватели группы без повторов.
-     */
-    std::vector<std::shared_ptr<Teacher>> GetTeachersByGroup(const Group* group) const;
+		/**
+		 * @brief Получить список преподавателей
+		 * @return ссылку на массив преподавателей
+		 */
+		const std::vector<Teacher>& getTeachers() const noexcept;
 
-    // ---- Запрос 4: список групп на указанной специальности ----
+		/**
+		 * @brief Получить список занятий
+		 * @return ссылку на массив занятий
+		 */
+		const std::vector<Lesson>& getLessons() const noexcept;
 
-    /**
-     * @brief Возвращает группы, обучающиеся на указанной специальности.
-     * @param specialty Специальность-запрос.
-     * @return Группы специальности; пустой вектор, если @p specialty неизвестна.
-     */
-    std::vector<std::shared_ptr<Group>> GetGroupsBySpecialty(const Specialty* specialty) const;
+		/**
+		 * @brief Найти специальность по коду
+		 * @param code - код специальности
+		 * @return true, если в ВУЗе есть специальность с таким кодом
+		 */
+		bool findSpecialtyByCode(const std::string& code) const noexcept;
 
-    // ---- Дополнительные запросы ----
+		/**
+		 * @brief Найти кафедру по названию
+		 * @param departmentName - название кафедры
+		 * @return true, если в ВУЗе есть кафедра с таким названием
+		 */
+		bool findDepartmentByName(const std::string& departmentName) const noexcept;
 
-    /**
-     * @brief Ищет кафедру по названию (регистронезависимо).
-     * @param name Название кафедры.
-     * @return Умный указатель на кафедру либо nullptr, если не найдена.
-     */
-    std::shared_ptr<Department> FindDepartmentByName(const std::string& name) const;
+		/**
+		 * @brief Найти группу по номеру
+		 * @param groupNumber - номер группы
+		 * @return true, если в ВУЗе есть группа с таким номером
+		 */
+		bool findGroupByNumber(const std::string& groupNumber) const noexcept;
 
-    /**
-     * @brief Ищет специальность по коду (регистронезависимо).
-     * @param code Код специальности.
-     * @return Умный указатель на специальность либо nullptr, если не найдена.
-     */
-    std::shared_ptr<Specialty> FindSpecialtyByCode(const std::string& code) const;
+		/**
+		 * @brief Найти преподавателя по id
+		 * @param id - id преподавателя
+		 * @return true, если в ВУЗе есть преподаватель с таким id
+		 */
+		bool findTeacherById(const int id) const noexcept;
 
-    /**
-     * @brief Ищет группу по номеру (регистронезависимо).
-     * @param number Номер группы.
-     * @return Умный указатель на группу либо nullptr, если не найдена.
-     */
-    std::shared_ptr<Group> FindGroupByNumber(const std::string& number) const;
+		/**
+		 * @brief Найти преподавателя по ФИО
+		 * @param fullName - ФИО преподавателя
+		 * @return true, если в ВУЗе есть преподаватель с таким ФИО
+		 */
+		bool findTeacherByFullName(const std::string& fullName) const;
 
-    /**
-     * @brief Возвращает занятия указанной группы.
-     * @param group Группа-запрос.
-     * @return Занятия группы в порядке добавления.
-     */
-    std::vector<std::shared_ptr<Lesson>> GetLessonsByGroup(const Group* group) const;
+		/**
+		 * @brief Найти студента по номеру зачётной книжки
+		 * @param recordBook - номер зачётной книжки
+		 * @return true, если в ВУЗе есть студент с таким номером
+		 *         зачётной книжки
+		 */
+		bool findStudentByRecordBook(const std::string& recordBook) const;
 
-    /**
-     * @brief Возвращает ВСЕХ людей ВУЗА (студентов и преподавателей) как
-     *        умные указатели на БАЗОВЫЙ тип Person.
-     *
-     *        Именно этот метод формирует полиморфную коллекцию базового
-     *        типа, которую обходит main.cpp (общее требование задания 1).
-     * @return Студенты (сначала), затем преподаватели.
-     */
-    std::vector<std::shared_ptr<Person>> GetAllPeople() const;
+		/**
+		 * @brief Получить студента по номеру зачётной книжки
+		 * @param recordBook - номер зачётной книжки
+		 * @return массив из одного найденного студента или пустой массив,
+		 *         если студента нет
+		 */
+		std::vector<Student> getStudentByRecordBook(const std::string& recordBook) const;
 
-    /**
-     * @brief Возвращает всех студентов ВУЗа.
-     * @return Студенты всех групп.
-     */
-    std::vector<std::shared_ptr<Student>> GetAllStudents() const;
+		/**
+		 * @brief Получить преподавателя по ФИО
+		 * @param fullName - ФИО преподавателя
+		 * @return массив из одного найденного преподавателя или пустой
+		 *         массив, если преподавателя нет
+		 */
+		std::vector<Teacher> getTeacherByFullName(const std::string& fullName) const;
 
-    /**
-     * @brief Формирует сводную статистику ВУЗа.
-     * @return Отформатированная строка со счётчиками.
-     */
-    std::string GetStatistics() const;
+		/**
+		 * @brief Найти студентов по части или полному ФИО
+		 * @param fullName - ФИО или его часть
+		 * @return массив копий найденных студентов
+		 */
+		std::vector<Student> findStudentsByFullName(const std::string& fullName) const;
 
-private:
-    std::string name_;
-    std::deque<Specialty> specialties_;
-    std::deque<Department> departments_;
-    std::deque<Group> groups_;
-    std::deque<Teacher> teachers_;
-    std::deque<Lesson> lessons_;
+		/**
+		 * @brief Получить дисциплины, читаемые кафедрой
+		 * @param department - кафедра
+		 * @return массив копий дисциплин кафедры
+		 */
+		std::vector<Discipline> getDisciplinesByDepartment(const Department& department) const;
+
+		/**
+		 * @brief Получить преподавателей, проводящих занятия в группе
+		 * @param group - группа
+		 * @return массив копий преподавателей группы
+		 */
+		std::vector<Teacher> getTeachersByGroup(const Group& group) const;
+
+		/**
+		 * @brief Получить группы, обучающиеся на специальности
+		 * @param specialty - специальность
+		 * @return массив копий групп специальности
+		 */
+		std::vector<Group> getGroupsBySpecialty(const Specialty& specialty) const;
+
+		/**
+		 * @brief Получить всех студентов ВУЗа
+		 * @return массив копий студентов ВУЗа
+		 */
+		std::vector<Student> getAllStudents() const;
+
+		/**
+		 * @brief Получить всех преподавателей ВУЗа
+		 * @return массив копий преподавателей ВУЗа
+		 */
+		std::vector<Teacher> getAllTeachers() const;
+
+		/**
+		 * @brief Получить статистику ВУЗа одной строкой
+		 * @return строка со счётчиками объектов и средним баллом
+		 */
+		std::string getStatistics() const;
 };

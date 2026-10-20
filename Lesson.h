@@ -1,118 +1,160 @@
 #pragma once
-//
-// Lesson.h
-// Класс "Занятие" - связка "дисциплина + группа + преподаватель".
-//
-// Предметная особенность ВУЗа: занятия ведут преподаватели с разных
-// кафедр, а ЛАБОРАТОРНЫЕ РАБОТЫ проводят ДВА преподавателя (основной и
-// второй). Это правило проверяется в конструкторе.
-//
+
+#include <cstddef>
 #include <string>
 #include <vector>
-#include "Date.h"
 
-class Discipline;
+#include "Date.h"
+#include "Discipline.h"
+#include "Teacher.h"
+
 class Group;
-class Teacher;
 
 /**
- * @brief Вид занятия.
+ * @brief Вид занятия
  */
 enum class LessonType {
-    Lecture,    ///< Лекция
-    Practical,  ///< Практическое занятие
-    Lab         ///< Лабораторная работа (ведут два преподавателя)
+	Lecture,    ///< Лекция
+	Practical,  ///< Практическое занятие
+	Lab         ///< Лабораторная работа, которую ведут два преподавателя
 };
 
 /**
- * @brief Возвращает человекочитаемое название вида занятия.
- * @param type Вид занятия.
- * @return "Лекция" / "Практика" / "Лабораторная работа".
+ * @brief Получить название вида занятия
+ * @param type - вид занятия
+ * @return название вида занятия
  */
-const std::string ToString(LessonType type);
+std::string toString(const LessonType type);
 
 /**
- * @brief Одно учебное занятие: дисциплина, группа, преподаватель(и),
- *        аудитория и дата проведения.
+ * @brief Класс Занятие
  */
 class Lesson {
-public:
-    /**
-     * @brief Создаёт занятие.
-     * @param type         Вид занятия.
-     * @param discipline   Дисциплина, по которой проводится занятие.
-     * @param group        Группа-участник.
-     * @param teacher      Основной преподаватель.
-     * @param secondTeacher Второй преподаватель; обязателен для LessonType::Lab
-     *                      и должен быть nullptr для остальных видов.
-     * @param room         Аудитория (может быть пустой).
-     * @param date         Дата проведения.
-     * @throws std::invalid_argument при нарушении правил:
-     *         - nullptr вместо discipline, group или teacher;
-     *         - для лабораторной работы не задан второй преподаватель;
-     *         - для не-лабораторной задан второй преподаватель;
-     *         - второй преподаватель совпадает с основным.
-     */
-     Lesson(const LessonType type, const Discipline* discipline, const Group* group,
-        const Teacher* teacher, const Teacher* secondTeacher, const std::string& room, const Date date);
+	private:
+		/**
+		 * @brief Вид занятия
+		 */
+		LessonType type;
 
-    /** @brief Возвращает вид занятия. */
-    LessonType GetType() const;
+		/**
+		 * @brief Дисциплина, по которой проводится занятие
+		 */
+		Discipline discipline;
 
-    /** @brief Возвращает дисциплину занятия. */
-    const Discipline& GetDiscipline() const;
+		/**
+		 * @brief Номер группы, для которой проводится занятие
+		 */
+		std::string groupNumber;
 
-    /** @brief Возвращает группу-участника. */
-    const Group& GetGroup() const;
+		/**
+		 * @brief Преподаватели занятия: один для лекции или практики,
+		 *        два для лабораторной работы
+		 */
+		std::vector<Teacher> teachers;
 
-    /** @brief Возвращает основного преподавателя. */
-    const Teacher& GetTeacher() const;
+		/**
+		 * @brief Аудитория проведения занятия
+		 */
+		std::string room;
 
-    /** @brief Возвращает второго преподавателя (nullptr, если его нет). */
-    const Teacher& GetSecondTeacher() const;
+		/**
+		 * @brief Дата проведения занятия
+		 */
+		Date date;
 
-    /** @brief Возвращает основного и (если есть) второго преподавателя. */
-    std::vector GetTeachers() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param type - вид занятия
+		 * @param discipline - дисциплина занятия
+		 * @param group - группа, для которой проводится занятие
+		 * @param teacher - основной преподаватель
+		 * @param secondTeacher - второй преподаватель; обязателен для
+		 *        LessonType::Lab и должен быть nullptr для остальных видов занятий
+		 * @param room - аудитория, может быть пустой строкой
+		 * @param date - дата проведения занятия
+		 * @throws std::invalid_argument если для лабораторной работы не передан
+		 *         второй преподаватель, если оба преподавателя - один и тот же
+		 *         человек или если второй преподаватель передан не для лабораторной
+		 */
+		Lesson(const LessonType& type, const Discipline& discipline, const Group& group,
+			const Teacher& teacher, const Teacher* secondTeacher, const std::string& room,
+			const Date& date);
 
-    /** @brief Возвращает число преподавателей занятия (1 или 2). */
-    size_t GetTeacherCount() const;
+		/**
+		 * @brief Получить вид занятия
+		 * @return вид занятия
+		 */
+		LessonType getType() const noexcept;
 
-    /** @brief Возвращает аудиторию. */
-    const std::string& GetRoom() const;
+		/**
+		 * @brief Получить дисциплину занятия
+		 * @return ссылку на дисциплину
+		 */
+		const Discipline& getDiscipline() const noexcept;
 
-    /** @brief Возвращает дату проведения. */
-    const Date& GetDate() const;
+		/**
+		 * @brief Получить номер группы, для которой проводится занятие
+		 * @return номер группы
+		 */
+		const std::string& getGroupNumber() const noexcept;
 
-    /**
-     * @brief Проверяет, ведёт ли занятие указанный преподаватель (основной
-     *        или второй).
-     * @param teacher Проверяемый преподаватель.
-     * @return true, если @p teacher ведёт это занятие.
-     */
-    bool IsTaughtBy(const Teacher& teacher) const;
+		/**
+		 * @brief Получить преподавателей занятия
+		 * @return ссылку на массив преподавателей
+		 */
+		const std::vector<Teacher>& getTeachers() const noexcept;
 
-    /** @brief Возвращает краткое представление: "вид: дисциплина". */
-    std::string GetShortInfo() const;
+		/**
+		 * @brief Получить число преподавателей занятия
+		 * @return число преподавателей: 1 для лекции или практики, 2 для лабораторной
+		 */
+		std::size_t getTeacherCount() const noexcept;
 
-    /**
-     * @brief Формирует описание занятия: вид, дисциплина, группа,
-     *        преподаватели, аудитория и дата.
-     * @return Отформатированная строка с описанием.
-     */
-    std::string GetInfo() const;
+		/**
+		 * @brief Получить аудиторию занятия
+		 * @return номер аудитории
+		 */
+		const std::string& getRoom() const noexcept;
 
-private:
-    /**
-     * @brief Проверяет корректность связки занятия.
-     * @throws std::invalid_argument при нарушении доменных правил.
-     */
-    static void Validate(const LessonType type, const Discipline& discipline, const Group& group,
-        const Teacher& teacher, const Teacher& secondTeacher);
+		/**
+		 * @brief Получить дату проведения занятия
+		 * @return дату занятия
+		 */
+		const Date& getDate() const noexcept;
 
-    LessonType type_;
-    Discipline discipline_;
-    Group group_;
-    Group group_;
-    std::string room_;
-    Date date_;
+		/**
+		 * @brief Проверить, ведёт ли указанный преподаватель это занятие
+		 * @param teacher - проверяемый преподаватель
+		 * @return true, если преподаватель ведёт занятие
+		 */
+		bool isTaughtBy(const Teacher& teacher) const noexcept;
+
+		/**
+		 * @brief Получить краткое представление занятия
+		 * @return строка с видом занятия, дисциплиной и номером группы
+		 */
+		std::string getShortInfo() const;
+
+		/**
+		 * @brief Получить полную информацию о занятии
+		 * @return строка с видом занятия, дисциплиной, группой,
+		 *         преподавателями, аудиторией и датой
+		 */
+		std::string getInfo() const;
+
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - второе занятие
+		 * @return true, если вид, дисциплина, группа, преподаватели,
+		 *         аудитория и дата совпадают
+		 */
+		bool operator==(const Lesson& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - второе занятие
+		 * @return true, если занятия различаются
+		 */
+		bool operator!=(const Lesson& other) const noexcept;
 };

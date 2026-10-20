@@ -1,83 +1,118 @@
 #pragma once
-//
-// Student.h
-// Класс "Студент" - тип-наследник Person.
-//
-// Студент состоит в группе и имеет номер зачётной книжки (по нему
-// выполняется первый запрос варианта "ВУЗ"). Ссылка на группу - не владеющий
-// указатель: группыми владеет University, чтобы не было циклического владения.
-//
+
+#include <cstddef>
 #include <string>
 #include <vector>
-#include "Person.h"
-#include "Date.h"
 
-class Group;
+#include "Date.h"
+#include "Person.h"
 
 /**
- * @brief Студент ВУЗа: ФИО, дата рождения, номер зачётной книжки, курс
- *        и группа обучения.
+ * @brief Класс Студент - наследник класса Person
  */
 class Student : public Person {
-public:
-    /**
-     * @brief Создаёт студента.
-     * @param fullName   ФИО студента.
-     * @param birthDate  Дата рождения.
-     * @param recordBook Номер зачётной книжки.
-     * @param course     Номер курса обучения (1-based).
-     * @param group      Группа, в которой обучается студент.
-     * @throws std::invalid_argument если ФИО или номер зачётной книжки
-     *         пустые, course == 0 или @p group равен nullptr.
-     */
-    Student(const std::string& fullName, const Date birthDate, const std::string& recordBook,
-        const unsigned course, const Group& group);
+	private:
+		/**
+		 * @brief Номер зачётной книжки
+		 */
+		std::string recordBook;
 
-    /** @brief Возвращает номер зачётной книжки. */
-    const std::string& GetRecordBook() const;
+		/**
+		 * @brief Номер курса обучения
+		 */
+		unsigned int course;
 
-    /** @brief Возвращает номер курса обучения. */
-    unsigned GetCourse() const;
+		/**
+		 * @brief Оценки студента
+		 */
+		std::vector<double> marks;
 
-    /** @brief Возвращает группу, в которой обучается студент. */
-    const Group* GetGroup() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param fullName - ФИО студента
+		 * @param birthDate - дата рождения
+		 * @param recordBook - номер зачётной книжки
+		 * @param course - номер курса обучения, не меньше 1
+		 * @param id - id человека (0 для автогенерации)
+		 * @throws std::invalid_argument если номер зачётной книжки пустой
+		 *         или курс меньше 1
+		 */
+		Student(const std::string& fullName, const Date& birthDate, const std::string& recordBook,
+			const unsigned int course, const int id = 0);
 
-    /**
-     * @brief Добавляет оценку студенту.
-     * @param mark Оценка по пятибалльной шкале.
-     * @throws std::invalid_argument если оценка вне диапазона 1..5.
-     */
-     void AddMark(const double mark);
+		/**
+		 * @brief Получить номер зачётной книжки
+		 * @return номер зачётной книжки
+		 */
+		const std::string& getRecordBook() const noexcept;
 
-    /**
-     * @brief Возвращает средний балл студента.
-     * @return Средний балл; 0.0, если оценок ещё не было.
-     */
-    double GetAverageMark() const;
+		/**
+		 * @brief Получить номер курса обучения
+		 * @return номер курса
+		 */
+		unsigned int getCourse() const noexcept;
 
-    /** @brief Возвращает true, если студент является студентом. */
-    bool IsStudent() const override;
+		/**
+		 * @brief Добавить оценку студенту
+		 * @param mark - оценка, от 2 до 5
+		 * @throws std::invalid_argument если оценка вне диапазона 2-5
+		 */
+		void addMark(const double mark);
 
-    /** @brief Возвращает "Студент". */
-    std::string GetRole() const override;
+		/**
+		 * @brief Получить список оценок
+		 * @return ссылку на массив оценок
+		 */
+		const std::vector<double>& getMarks() const noexcept;
 
-    /**
-     * @brief Формирует описание студента: ФИО, зачётная книжка, курс,
-     *        группа, специальность и средний балл.
-     * @return Отформатированная строка с описанием.
-     */
-    std::string GetInfo() const override;
+		/**
+		 * @brief Получить количество оценок
+		 * @return число оценок
+		 */
+		std::size_t getMarkCount() const noexcept;
 
-    /** @brief Возвращает краткое представление: "Фамилия И. О. (гр. 1И)". */
-    std::string GetShortInfo() const override;
+		/**
+		 * @brief Проверить, есть ли у студента оценки
+		 * @return true, если у студента есть хотя бы одна оценка
+		 */
+		bool hasMarks() const noexcept;
 
-protected:
-    /** @brief Часть описания, специфичная для студента: зачётная книжка и курс. */
-    std::string GetSpecificInfo() const override;
+		/**
+		 * @brief Получить средний балл студента
+		 * @return средний балл или 0, если оценок нет
+		 */
+		double getAverageMark() const noexcept;
 
-private:
-    std::string recordBook_;
-    unsigned course_ = 0;
-    const Group* group_;
-    std::vector<double> marks_;
+		/**
+		 * @brief Получить роль человека в ВУЗе
+		 * @return строку "Студент"
+		 */
+		std::string getRole() const override;
+
+		/**
+		 * @brief Получить сведения, характерные для конкретной роли
+		 * @return строку с номером зачётной книжки, курсом и средним баллом
+		 */
+		std::string getSpecificInfo() const override;
+
+		/**
+		 * @brief Проверить, является ли человек студентом
+		 * @return true, так как это студент
+		 */
+		bool isStudent() const override;
+
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - второй студент
+		 * @return true, если id и номера зачётных книжек совпадают
+		 */
+		bool operator==(const Student& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - второй студент
+		 * @return true, если студенты различаются
+		 */
+		bool operator!=(const Student& other) const noexcept;
 };

@@ -1,106 +1,69 @@
-//
-// Group.cpp
-// Реализация класса Group.
-//
 #include "Group.h"
-#include "Student.h"
-#include "Specialty.h"
-#include "FormatUtils.h"
 
 #include <stdexcept>
 
-Group::Group(const std::string& number, Specialty* specialty)
-    : number_(number)
-    , specialty_(specialty)
-{
-    if (FormatUtils::Trim(number_).empty()) {
-        throw std::invalid_argument("Group: номер группы не может быть пустым");
-    }
-    if (specialty == nullptr) {
-        throw std::invalid_argument("Group: группа должна относиться к специальности");
-    }
-    number_ = FormatUtils::Trim(number_);
+#include "FormatUtils.h"
 
-    // Регистрируем себя у специальности сразу при создании. Так сохраняется
-    // инвариант "каждая группа входит в список своей специальности"
-    // независимо от того, кто создал группу: сам конструктор Group
-    // или агрегатор University.
-    specialty_->AddGroup(this);
+Group::Group(const std::string& number, const Specialty& specialty)
+	: number(FormatUtils::trim(number)), specialty(specialty) {
+	if (this->number.empty()) {
+		throw std::invalid_argument("Номер группы не может быть пустым");
+	}
 }
 
-const std::string& Group::GetNumber() const {
-    return number_;
+const std::string& Group::getNumber() const noexcept {return number;}
+
+const Specialty& Group::getSpecialty() const noexcept {return specialty;}
+
+void Group::addStudent(const Student& student) {
+	if (findStudentByRecordBook(student.getRecordBook())) {
+		throw std::invalid_argument("Студент с номером зачётной книжки " +
+			student.getRecordBook() + " уже есть в группе " + number);
+	}
+	students.push_back(student);
 }
 
-const Specialty& GetSpecialty() const {
-    return specialty_;
+const std::vector<Student>& Group::getStudents() const noexcept {return students;}
+
+std::size_t Group::getStudentCount() const noexcept {return students.size();}
+
+bool Group::findStudentByRecordBook(const std::string& recordBook) const {
+	return !getStudentByRecordBook(recordBook).empty();
 }
 
-Student& AddStudent(const std::string& fullName, const Date birthDate,
-    const std::string& recordBook, unsigned course);
-{
-    if (FormatUtils::Trim(fullName).empty()) {
-        throw std::invalid_argument("Group: ФИО студента не может быть пустым");
-    }
-    if (FindStudentByRecordBook(recordBook) != nullptr) {
-        throw std::invalid_argument("Group: в группе уже есть студент с зачётной книжкой " + recordBook);
-    }
-
-    auto student = std::make_shared<Student>(fullName, birthDate, recordBook, course, this);
-    students_.push_back(student);
-    return student;
+std::vector<Student> Group::getStudentByRecordBook(const std::string& recordBook) const {
+	for (const Student& student : students) {
+		if (FormatUtils::equalsIgnoreCase(student.getRecordBook(), recordBook)) {
+			return {student};
+		}
+	}
+	return {};
 }
 
-const std::deque<Student>& GetStudents() const {
-    return students_;
+double Group::getAverageMark() const noexcept {
+	double sum = 0.0;
+	std::size_t markCount = 0;
+	for (const Student& student : students) {
+		sum += student.getAverageMark() * static_cast<double>(student.getMarkCount());
+		markCount += student.getMarkCount();
+	}
+	if (markCount == 0) {
+		return 0.0;
+	}
+	return sum / static_cast<double>(markCount);
 }
 
-size_t Group::GetStudentCount() const {
-    return students_.size();
+std::string Group::getShortInfo() const {
+	return number;
 }
 
-std::shared_ptr<Student> Group::FindStudentByRecordBook(const std::string& recordBook) const {
-    const std::string target = FormatUtils::Trim(recordBook);
-    for (const std::shared_ptr<Student>& student : students_) {
-        if (FormatUtils::EqualsIgnoreCase(student->GetRecordBook(), target)) {
-            return student;
-        }
-    }
-    return nullptr;
+std::string Group::getInfo() const {
+	return "Группа " + number + " | " + specialty.getShortInfo() +
+		" | Студентов: " + std::to_string(students.size());
 }
 
-std::shared_ptr<Student> Group::FindStudentByFullName(const std::string& fullName) const {
-    const std::string target = FormatUtils::Trim(fullName);
-    if (target.empty()) {
-        return nullptr;
-    }
-    for (const std::shared_ptr<Student>& student : students_) {
-        if (FormatUtils::ContainsIgnoreCase(student->GetFullName(), target)) {
-            return student;
-        }
-    }
-    return nullptr;
+bool Group::operator==(const Group& other) const noexcept {
+	return number == other.number && specialty == other.specialty;
 }
 
-double Group::GetAverageMark() const {
-    if (students_.empty()) {
-        return 0.0;
-    }
-    double sum = 0.0;
-    for (const std::shared_ptr<Student>& student : students_) {
-        sum += student->GetAverageMark();
-    }
-    return sum / static_cast<double>(students_.size());
-}
-
-std::string Group::GetShortInfo() const {
-    const std::string code = (specialty_ != nullptr) ? specialty_->GetCode() : "---";
-    return number_ + " (" + code + ")";
-}
-
-std::string Group::GetInfo() const {
-    const std::string specialtyName = (specialty_ != nullptr) ? specialty_->GetName() : "не определена";
-    return "Группа: " + number_
-        + " | специальность: " + specialtyName
-        + " | студентов: " + std::to_string(students_.size());
-}
+bool Group::operator!=(const Group& other) const noexcept {return !(*this == other);}

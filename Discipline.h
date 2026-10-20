@@ -1,51 +1,68 @@
 #pragma once
-//
-// Discipline.h
-// Класс "Дисциплина" - предмет, который читает кафедра.
-//
-// Дисциплина принадлежит кафедре, ведущей занятия по ней. Это основа
-// второго запроса варианта "ВУЗ" (список предметов кафедры).
-//
+
 #include <string>
 
-class Department;
+#include "Department.h"
 
 /**
- * @brief Дисциплина ВУЗа с её названием и кафедрой-владельцем.
+ * @brief Класс Дисциплина
  */
 class Discipline {
-public:
-    /**
-     * @brief Создаёт дисциплину.
-     * @param name       Название дисциплины.
-     * @param department Кафедра, читающая эту дисциплину.
-     * @throws std::invalid_argument если название пустое или @p department
-     *         равен nullptr.
-     */
-    Discipline(const std::string& name, const Department& department);
+	private:
+		/**
+		 * @brief Название дисциплины
+		 */
+		std::string name;
 
-    /** @brief Возвращает название дисциплины. */
-    const std::string& GetName() const;
+		/**
+		 * @brief Кафедра, читающая дисциплину
+		 */
+		Department department;
 
-    /** @brief Возвращает кафедру, читающую дисциплину. */
-    const Department* GetDepartment() const;
+	public:
+		/**
+		 * @brief Конструктор
+		 * @param name - название дисциплины
+		 * @param department - кафедра, читающая дисциплину
+		 * @throws std::invalid_argument если название пустое
+		 */
+		Discipline(const std::string& name, const Department& department);
 
-    /**
-     * @brief Проверяет, что дисциплина зарегистрирована у своей кафедры.
-     * @return true, если кафедра-владелец возвращает этот же объект.
-     */
-    bool IsReadByOwnDepartment() const;
+		/**
+		 * @brief Получить название дисциплины
+		 * @return название дисциплины
+		 */
+		const std::string& getName() const noexcept;
 
-    /** @brief Возвращает краткое представление: название дисциплины. */
-    std::string GetShortInfo() const;
+		/**
+		 * @brief Получить кафедру, читающую дисциплину
+		 * @return ссылку на кафедру
+		 */
+		const Department& getDepartment() const noexcept;
 
-    /**
-     * @brief Формирует описание дисциплины с названием кафедры.
-     * @return Отформатированная строка с описанием.
-     */
-    std::string GetInfo() const;
+		/**
+		 * @brief Получить краткое представление дисциплины
+		 * @return название дисциплины
+		 */
+		std::string getShortInfo() const;
 
-private:
-    std::string name_;
-    Department department_;
+		/**
+		 * @brief Получить полную информацию о дисциплине
+		 * @return строка с названием дисциплины и её кафедрой
+		 */
+		std::string getInfo() const;
+
+		/**
+		 * @brief Стандартный оператор сравнения "равно"
+		 * @param other - вторая дисциплина
+		 * @return true, если названия и кафедры дисциплин совпадают
+		 */
+		bool operator==(const Discipline& other) const noexcept;
+
+		/**
+		 * @brief Стандартный оператор сравнения "не равно"
+		 * @param other - вторая дисциплина
+		 * @return true, если дисциплины различаются
+		 */
+		bool operator!=(const Discipline& other) const noexcept;
 };

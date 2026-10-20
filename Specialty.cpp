@@ -1,59 +1,33 @@
-//
-// Specialty.cpp
-// Реализация класса Specialty.
-//
 #include "Specialty.h"
-#include "FormatUtils.h"
 
-#include <algorithm>
 #include <stdexcept>
 
+#include "FormatUtils.h"
+
 Specialty::Specialty(const std::string& code, const std::string& name)
-    : code_(code)
-    , name_(name)
-{
-    if (FormatUtils::Trim(code_).empty()) {
-        throw std::invalid_argument("Specialty: код специальности не может быть пустым");
-    }
-    if (FormatUtils::Trim(name_).empty()) {
-        throw std::invalid_argument("Specialty: название специальности не может быть пустым");
-    }
-    code_ = FormatUtils::Trim(code_);
-    name_ = FormatUtils::Trim(name_);
+	: code(FormatUtils::trim(code)), name(FormatUtils::trim(name)) {
+	if (this->code.empty()) {
+		throw std::invalid_argument("Код специальности не может быть пустым");
+	}
+	if (this->name.empty()) {
+		throw std::invalid_argument("Название специальности не может быть пустым");
+	}
 }
 
-const std::string& Specialty::GetCode() const {
-    return code_;
+const std::string& Specialty::getCode() const noexcept {return code;}
+
+const std::string& Specialty::getName() const noexcept {return name;}
+
+std::string Specialty::getShortInfo() const {
+	return code + " - " + name;
 }
 
-const std::string& Specialty::GetName() const {
-    return name_;
+std::string Specialty::getInfo() const {
+	return "Специальность " + getShortInfo();
 }
 
-bool AddGroup(const Group& group) {
-    if (group == nullptr) {
-        throw std::invalid_argument("Specialty: группа не может быть nullptr");
-    }
-    if (std::find(groups_.begin(), groups_.end(), group) != groups_.end()) {
-        return false;
-    }
-    groups_.push_back(group);
-    return true;
+bool Specialty::operator==(const Specialty& other) const noexcept {
+	return code == other.code && name == other.name;
 }
 
-const std::vector& GetGroups() const{
-    return groups_;
-}
-
-size_t Specialty::GetGroupCount() const {
-    return groups_.size();
-}
-
-std::string Specialty::GetShortInfo() const {
-    return code_ + " - " + name_;
-}
-
-std::string Specialty::GetInfo() const {
-    return "Специальность: " + code_ + " " + name_
-        + " | групп: " + std::to_string(groups_.size());
-}
+bool Specialty::operator!=(const Specialty& other) const noexcept {return !(*this == other);}

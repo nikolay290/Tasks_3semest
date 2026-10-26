@@ -32,36 +32,20 @@ namespace {
 	}
 
 	/**
-	 * @brief Создать коллекцию объектов базового типа Person и заполнить
-	 *        её объектами типов-наследников (Student и Teacher). Именно
-	 *        эта коллекция далее обходится в main() как коллекция
-	 *        базового класса.
-	 * @param university - заполненный ВУЗ
-	 * @return не владеющие указатели на людей ВУЗа; ими владеют контейнеры
-	 *         внутри @p university, поэтому коллекцию можно читать, пока
-	 *         ВУЗ не меняется
+	 * @brief Вывести всех людей ВУЗа. Обход построен как в образце: два
+	 *        цикла по контейнерам, элемент привязан к const Person&, а
+	 *        getInfo() вызывается через базовый тип. Так как getInfo()
+	 *        виртуальный, для студента и преподавателя выполняется их
+	 *        собственная версия метода.
+	 * @param students - студенты ВУЗа
+	 * @param teachers - преподаватели ВУЗа
 	 */
-	std::vector<const Person*> createPeopleCollection(const University& university) {
-		std::vector<const Person*> people;
-		for (const Group& group : university.getGroups()) {
-			for (const Student& student : group.getStudents()) {
-				people.push_back(&student);
-			}
+	void printAllPeople(const std::vector<Student>& students, const std::vector<Teacher>& teachers) {
+		for (const Person& student : students) {
+			std::cout << "  - " << student.getInfo() << std::endl;
 		}
-		for (const Teacher& teacher : university.getTeachers()) {
-			people.push_back(&teacher);
-		}
-		return people;
-	}
-
-	/**
-	 * @brief Обойти коллекцию как коллекцию базового класса и вывести
-	 *        информацию о каждом объекте в std::cout
-	 * @param people - коллекция людей ВУЗа
-	 */
-	void printAllPeople(const std::vector<const Person*>& people) {
-		for (const Person* person : people) {
-			std::cout << "  - " << person->getInfo() << std::endl;
+		for (const Person& teacher : teachers) {
+			std::cout << "  - " << teacher.getInfo() << std::endl;
 		}
 	}
 
@@ -154,7 +138,7 @@ namespace {
 int main() {
 	enableUtf8Console();
 
-	University university("Национальный исследовательский университет");
+	University university("Российский университет транспорта");
 
 	const Department appliedMath("Прикладная математика");
 	const Department informationSystems("Информационные системы");
@@ -214,19 +198,19 @@ int main() {
 	university.addGroup(group2I);
 	university.addGroup(group1E);
 
-	university.addLesson(Lesson(LessonType::Lecture, discreteMath, group1I, ivanov, nullptr,
+	university.addLesson(Lesson(LessonType::Lecture, discreteMath, group1I, {ivanov},
 		"25", Date(2026, 9, 1)));
-	university.addLesson(Lesson(LessonType::Lab, discreteMath, group1I, petrov, &ivanov,
+	university.addLesson(Lesson(LessonType::Lab, discreteMath, group1I, {petrov, ivanov},
 		"12", Date(2026, 9, 3)));
-	university.addLesson(Lesson(LessonType::Practical, linearAlgebra, group2I, petrov, nullptr,
+	university.addLesson(Lesson(LessonType::Practical, linearAlgebra, group2I, {petrov},
 		"25", Date(2026, 9, 2)));
-	university.addLesson(Lesson(LessonType::Lab, databases, group1I, kuznetsova, &ivanov,
+	university.addLesson(Lesson(LessonType::Lab, databases, group1I, {kuznetsova, ivanov},
 		"34", Date(2026, 9, 4)));
-	university.addLesson(Lesson(LessonType::Lecture, webDevelopment, group2I, kuznetsova, nullptr,
+	university.addLesson(Lesson(LessonType::Lecture, webDevelopment, group2I, {kuznetsova},
 		"34", Date(2026, 9, 5)));
 
-	printDivider("Все люди ВУЗа (коллекция базового типа Person)");
-	printAllPeople(createPeopleCollection(university));
+	printDivider("Все люди ВУЗа (обход коллекции базового типа Person)");
+	printAllPeople(university.getAllStudents(), university.getAllTeachers());
 
 	printDivider("Запрос 1: студент по номеру зачётной книжки");
 	printStudentInfoByRecordBook(university, "17-142");

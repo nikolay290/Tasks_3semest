@@ -19,24 +19,18 @@ std::string toString(const LessonType type) {
 }
 
 Lesson::Lesson(const LessonType& type, const Discipline& discipline, const Group& group,
-	const Teacher& teacher, const Teacher* secondTeacher, const std::string& room,
-	const Date& date)
+	const std::vector<Teacher>& lessonTeachers, const std::string& room, const Date& date)
 	: type(type), discipline(discipline), groupNumber(group.getNumber()), room(room), date(date) {
-	if (type == LessonType::Lab) {
-		if (secondTeacher == nullptr) {
-			throw std::invalid_argument("Лабораторную работу должен вести второй преподаватель");
-		}
-		if (teacher.getId() == secondTeacher->getId()) {
-			throw std::invalid_argument("Лабораторную работу должны вести два разных преподавателя");
-		}
-		teachers.push_back(teacher);
-		teachers.push_back(*secondTeacher);
-		return;
+	const std::size_t requiredTeacherCount = type == LessonType::Lab ? 2 : 1;
+	if (lessonTeachers.size() != requiredTeacherCount) {
+		throw std::invalid_argument(type == LessonType::Lab
+			? "Лабораторную работу должны вести два преподавателя"
+			: "Занятие должен вести ровно один преподаватель");
 	}
-	if (secondTeacher != nullptr) {
-		throw std::invalid_argument("Второй преподаватель нужен только для лабораторной работы");
+	if (type == LessonType::Lab && lessonTeachers.at(0).getId() == lessonTeachers.at(1).getId()) {
+		throw std::invalid_argument("Лабораторную работу должны вести два разных преподавателя");
 	}
-	teachers.push_back(teacher);
+	teachers = lessonTeachers;
 }
 
 LessonType Lesson::getType() const noexcept {return type;}

@@ -1,5 +1,7 @@
 //
 // VuzTests.cpp
+// Все модульные тесты проекта на встроенном в Visual Studio фреймворке
+// Microsoft CppUnitTest:
 //   - TEST_CLASS(DateTests)             - класс Date;
 //   - TEST_CLASS(PersonTests)           - базовый класс Person и
 //                                         полиморфный обход коллекции;
@@ -566,7 +568,7 @@ namespace VuzTests
                 "доктор наук", Department("Прикладная математика"));
 
             Assert::ExpectException<std::invalid_argument>(
-                [&] { Lesson(LessonType::Lab, discipline, group, teacher, nullptr, "12", Date(2026, 9, 3)); });
+                [&] { Lesson(LessonType::Lab, discipline, group, {teacher}, "12", Date(2026, 9, 3)); });
         }
 
         /** @brief Два одинаковых преподавателя для лабораторной недопустимы. */
@@ -578,7 +580,7 @@ namespace VuzTests
                 "доктор наук", Department("Прикладная математика"));
 
             Assert::ExpectException<std::invalid_argument>(
-                [&] { Lesson(LessonType::Lab, discipline, group, teacher, &teacher, "12", Date(2026, 9, 3)); });
+                [&] { Lesson(LessonType::Lab, discipline, group, {teacher, teacher}, "12", Date(2026, 9, 3)); });
         }
 
         /** @brief Второй преподаватель нужен только для лабораторной. */
@@ -592,7 +594,7 @@ namespace VuzTests
                 "кандидат наук", Department("Прикладная математика"));
 
             Assert::ExpectException<std::invalid_argument>(
-                [&] { Lesson(LessonType::Lecture, discipline, group, first, &second, "25", Date(2026, 9, 1)); });
+                [&] { Lesson(LessonType::Lecture, discipline, group, {first, second}, "25", Date(2026, 9, 1)); });
         }
 
         /** @brief Лабораторная хранит обоих преподавателей. */
@@ -605,7 +607,7 @@ namespace VuzTests
             const Teacher second("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
                 "кандидат наук", Department("Прикладная математика"));
 
-            const Lesson lesson(LessonType::Lab, discipline, group, first, &second, "12", Date(2026, 9, 3));
+            const Lesson lesson(LessonType::Lab, discipline, group, {first, second}, "12", Date(2026, 9, 3));
 
             Assert::AreEqual(std::size_t(2), lesson.getTeacherCount());
             Assert::IsTrue(lesson.isTaughtBy(first));
@@ -620,7 +622,7 @@ namespace VuzTests
             const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
                 "доктор наук", Department("Прикладная математика"));
 
-            const Lesson lesson(LessonType::Lecture, discipline, group, teacher, nullptr, "25", Date(2026, 9, 1));
+            const Lesson lesson(LessonType::Lecture, discipline, group, {teacher}, "25", Date(2026, 9, 1));
 
             Assert::AreEqual(std::size_t(1), lesson.getTeacherCount());
             Assert::AreEqual(std::string("Лекция"), toString(lesson.getType()));
@@ -636,7 +638,7 @@ namespace VuzTests
                 "доктор наук", Department("Прикладная математика"));
             const Teacher stranger("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
                 "кандидат наук", Department("Прикладная математика"));
-            const Lesson lesson(LessonType::Lecture, discipline, group, teacher, nullptr, "25", Date(2026, 9, 1));
+            const Lesson lesson(LessonType::Lecture, discipline, group, {teacher}, "25", Date(2026, 9, 1));
 
             Assert::IsFalse(lesson.isTaughtBy(stranger));
         }
@@ -650,9 +652,9 @@ namespace VuzTests
                 "доктор наук", Department("Прикладная математика"));
             const Teacher second("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
                 "кандидат наук", Department("Прикладная математика"));
-            const Lesson firstLesson(LessonType::Lecture, discipline, group, first, nullptr,
+            const Lesson firstLesson(LessonType::Lecture, discipline, group, {first},
                 "25", Date(2026, 9, 1));
-            const Lesson secondLesson(LessonType::Lecture, discipline, group, second, nullptr,
+            const Lesson secondLesson(LessonType::Lecture, discipline, group, {second},
                 "25", Date(2026, 9, 1));
 
             Assert::IsFalse(firstLesson == secondLesson);
@@ -666,9 +668,9 @@ namespace VuzTests
             const Group group("1И", makeSpecialty());
             const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
                 "доктор наук", Department("Прикладная математика"));
-            const Lesson firstLesson(LessonType::Lecture, discipline, group, teacher, nullptr,
+            const Lesson firstLesson(LessonType::Lecture, discipline, group, {teacher},
                 "25", Date(2026, 9, 1));
-            const Lesson secondLesson(LessonType::Lecture, discipline, group, teacher, nullptr,
+            const Lesson secondLesson(LessonType::Lecture, discipline, group, {teacher},
                 "25", Date(2026, 9, 1));
 
             Assert::IsTrue(firstLesson == secondLesson);
@@ -683,9 +685,9 @@ namespace VuzTests
                 "доктор наук", Department("Прикладная математика"));
             const Teacher second("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
                 "кандидат наук", Department("Прикладная математика"));
-            const Lesson firstLesson(LessonType::Lab, discipline, group, first, &second,
+            const Lesson firstLesson(LessonType::Lab, discipline, group, {first, second},
                 "12", Date(2026, 9, 3));
-            const Lesson secondLesson(LessonType::Lab, discipline, group, second, &first,
+            const Lesson secondLesson(LessonType::Lab, discipline, group, {second, first},
                 "12", Date(2026, 9, 3));
 
             Assert::IsTrue(firstLesson == secondLesson);
@@ -698,7 +700,7 @@ namespace VuzTests
             const Group group("1И", makeSpecialty());
             const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
                 "доктор наук", Department("Прикладная математика"));
-            const Lesson lesson(LessonType::Lecture, discipline, group, teacher, nullptr, "12", Date(2026, 9, 3));
+            const Lesson lesson(LessonType::Lecture, discipline, group, {teacher}, "12", Date(2026, 9, 3));
             const std::string info = lesson.getInfo();
 
             Assert::IsTrue(info.find("Лекция") != std::string::npos);
@@ -765,12 +767,12 @@ namespace VuzTests
             university.addGroup(group2I);
             university.addGroup(group1E);
 
-            university.addLesson(Lesson(LessonType::Lecture, discreteMath, group1I, ivanov,
-                nullptr, "25", Date(2026, 9, 1)));
-            university.addLesson(Lesson(LessonType::Lab, discreteMath, group1I, petrov, &ivanov,
+            university.addLesson(Lesson(LessonType::Lecture, discreteMath, group1I, {ivanov},
+                "25", Date(2026, 9, 1)));
+            university.addLesson(Lesson(LessonType::Lab, discreteMath, group1I, {petrov, ivanov},
                 "12", Date(2026, 9, 3)));
-            university.addLesson(Lesson(LessonType::Practical, linearAlgebra, group2I, petrov,
-                nullptr, "25", Date(2026, 9, 2)));
+            university.addLesson(Lesson(LessonType::Practical, linearAlgebra, group2I, {petrov},
+                "25", Date(2026, 9, 2)));
 
             return university;
         }
@@ -819,8 +821,8 @@ namespace VuzTests
             university.addGroup(group);
 
             Assert::ExpectException<std::invalid_argument>(
-                [&] { university.addLesson(Lesson(LessonType::Lecture, discipline, group, stranger,
-                    nullptr, "25", Date(2026, 9, 1))); });
+                [&] { university.addLesson(Lesson(LessonType::Lecture, discipline, group, {stranger},
+                    "25", Date(2026, 9, 1))); });
         }
 
         /** @brief Занятие в незарегистрированной группе отклоняется. */
@@ -834,7 +836,7 @@ namespace VuzTests
 
             Assert::ExpectException<std::invalid_argument>(
                 [&] { university.addLesson(Lesson(LessonType::Lecture, discipline, unknownGroup,
-                    teacher, nullptr, "25", Date(2026, 9, 1))); });
+                    {teacher}, "25", Date(2026, 9, 1))); });
         }
 
         /** @brief Название ВУЗа не может быть пустым. */

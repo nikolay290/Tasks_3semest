@@ -68,17 +68,17 @@ class Lesson {
 		 * @param type - вид занятия
 		 * @param discipline - дисциплина занятия
 		 * @param group - группа, для которой проводится занятие
-		 * @param teacher - основной преподаватель
-		 * @param secondTeacher - второй преподаватель; обязателен для
-		 *        LessonType::Lab и должен быть nullptr для остальных видов занятий
+		 * @param lessonTeachers - преподаватели занятия; для лабораторной
+		 *        работы должно быть указано ровно два разных преподавателя,
+		 *        для остальных видов занятий - ровно один
 		 * @param room - аудитория, может быть пустой строкой
 		 * @param date - дата проведения занятия
-		 * @throws std::invalid_argument если для лабораторной работы не передан
-		 *         второй преподаватель, если оба преподавателя - один и тот же
-		 *         человек или если второй преподаватель передан не для лабораторной
+		 * @throws std::invalid_argument если число преподавателей не
+		 *         соответствует виду занятия или для лабораторной работы
+		 *         дважды указан один и тот же преподаватель
 		 */
 		Lesson(const LessonType& type, const Discipline& discipline, const Group& group,
-			const Teacher& teacher, const Teacher* secondTeacher, const std::string& room,
+			const std::vector<Teacher>& lessonTeachers, const std::string& room,
 			const Date& date);
 
 		/**

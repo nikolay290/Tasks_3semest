@@ -1,6 +1,3 @@
-#include "Discipline.h"
-#include "Teacher.h"
-
 #include "Student.h"
 
 #include <stdexcept>

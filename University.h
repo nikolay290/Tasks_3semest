@@ -69,6 +69,13 @@ class University {
 		 */
 		void registerDisciplineForTeacher(const Discipline& discipline, const int teacherId);
 
+		/**
+		 * @brief Зарегистрировать дисциплину у группы ВУЗа
+		 * @param discipline - дисциплина
+		 * @param groupNumber - номер группы
+		 */
+		void registerDisciplineForGroup(const Discipline& discipline, const std::string& groupNumber);
+
 	public:
 		/**
 		 * @brief Конструктор по умолчанию

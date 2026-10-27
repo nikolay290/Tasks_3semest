@@ -104,13 +104,19 @@ void University::addGroup(const Group& group) {
 	if (findGroupByNumber(group.getNumber())) {
 		throw std::invalid_argument("Группа " + group.getNumber() + " уже есть в ВУЗе");
 	}
-	groups.push_back(group);
-	const Specialty& groupSpecialty = group.getSpecialty();
+	Group stored = group;
+	for (const Lesson& lesson : lessons) {
+		if (lesson.getGroupNumber() == stored.getNumber()) {
+			stored.addDiscipline(lesson.getDiscipline());
+		}
+	}
+	groups.push_back(stored);
+	const Specialty& groupSpecialty = stored.getSpecialty();
 	for (Specialty& specialty : specialties) {
 		if (specialty != groupSpecialty) {
 			continue;
 		}
-		specialty.addGroup(group);
+		specialty.addGroup(stored);
 		const std::size_t index = findDepartmentIndex(specialty.getDepartment().getName());
 		if (index < departments.size()) {
 			departments.at(index).addSpecialty(specialty);
@@ -119,7 +125,7 @@ void University::addGroup(const Group& group) {
 	}
 	const std::size_t index = findDepartmentIndex(groupSpecialty.getDepartment().getName());
 	if (index < departments.size()) {
-		departments.at(index).addGroup(group);
+		departments.at(index).addGroup(stored);
 	}
 }
 
@@ -169,6 +175,7 @@ void University::addLesson(const Lesson& lesson) {
 		}
 		break;
 	}
+	registerDisciplineForGroup(lesson.getDiscipline(), lesson.getGroupNumber());
 }
 
 const std::vector<Specialty>& University::getSpecialties() const noexcept {return specialties;}
@@ -192,6 +199,21 @@ void University::registerDisciplineForTeacher(const Discipline& discipline, cons
 		const std::size_t index = findDepartmentIndex(teacher.getDepartment().getName());
 		if (index < departments.size()) {
 			departments.at(index).addTeacher(teacher);
+		}
+		return;
+	}
+}
+
+void University::registerDisciplineForGroup(const Discipline& discipline, const std::string& groupNumber) {
+	for (Group& group : groups) {
+		if (group.getNumber() != groupNumber) {
+			continue;
+		}
+		group.addDiscipline(discipline);
+		const Specialty& groupSpecialty = group.getSpecialty();
+		const std::size_t index = findDepartmentIndex(groupSpecialty.getDepartment().getName());
+		if (index < departments.size()) {
+			departments.at(index).addGroup(group);
 		}
 		return;
 	}

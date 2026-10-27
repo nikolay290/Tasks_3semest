@@ -5,12 +5,15 @@
 #include <vector>
 
 #include "Date.h"
+#include "Group.h"
 #include "Person.h"
 
 /**
  * @brief Класс Студент - наследник класса Person
  */
 class Student : public Person {
+	friend class Group;
+
 	private:
 		/**
 		 * @brief Номер зачётной книжки
@@ -23,9 +26,20 @@ class Student : public Person {
 		unsigned int course;
 
 		/**
+		 * @brief Группа, в которой обучается студент
+		 */
+		Group group;
+
+		/**
 		 * @brief Оценки студента
 		 */
 		std::vector<double> marks;
+
+		/**
+		 * @brief Задать группу студента; вызывается группой при зачислении
+		 * @param newGroup - группа, в которую зачисляется студент
+		 */
+		void setGroup(const Group& newGroup);
 
 	public:
 		/**
@@ -34,12 +48,13 @@ class Student : public Person {
 		 * @param birthDate - дата рождения
 		 * @param recordBook - номер зачётной книжки
 		 * @param course - номер курса обучения, не меньше 1
+		 * @param studentGroup - группа, в которой обучается студент
 		 * @param id - id человека (0 для автогенерации)
 		 * @throws std::invalid_argument если номер зачётной книжки пустой
 		 *         или курс меньше 1
 		 */
 		Student(const std::string& fullName, const Date& birthDate, const std::string& recordBook,
-			const unsigned int course, const int id = 0);
+			const unsigned int course, const Group& studentGroup, const int id = 0);
 
 		/**
 		 * @brief Получить номер зачётной книжки
@@ -52,6 +67,12 @@ class Student : public Person {
 		 * @return номер курса
 		 */
 		unsigned int getCourse() const noexcept;
+
+		/**
+		 * @brief Получить группу, в которой обучается студент
+		 * @return ссылку на группу
+		 */
+		const Group& getGroup() const noexcept;
 
 		/**
 		 * @brief Добавить оценку студенту
@@ -92,7 +113,8 @@ class Student : public Person {
 
 		/**
 		 * @brief Получить сведения, характерные для конкретной роли
-		 * @return строку с номером зачётной книжки, курсом и средним баллом
+		 * @return строку с номером зачётной книжки, курсом, группой
+		 *         и средним баллом
 		 */
 		std::string getSpecificInfo() const override;
 

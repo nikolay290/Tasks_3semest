@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "Specialty.h"
-#include "Student.h"
+
+class Student;
 
 /**
  * @brief Класс Группа
@@ -117,3 +118,7 @@ class Group {
 		 */
 		bool operator!=(const Group& other) const noexcept;
 };
+
+// Полное определение Student нужно там, где группа копируется или уничтожается:
+// её поле std::vector<Student> требует завершённого типа.
+#include "Student.h"

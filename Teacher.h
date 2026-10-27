@@ -1,10 +1,14 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
+#include <vector>
 
 #include "Date.h"
 #include "Department.h"
 #include "Person.h"
+
+class Discipline;
 
 /**
  * @brief Класс Преподаватель - наследник класса Person
@@ -25,6 +29,11 @@ class Teacher : public Person {
 		 * @brief Кафедра, на которой работает преподаватель
 		 */
 		Department department;
+
+		/**
+		 * @brief Дисциплины, которые читает преподаватель
+		 */
+		std::vector<Discipline> disciplines;
 
 	public:
 		/**
@@ -59,6 +68,26 @@ class Teacher : public Person {
 		const Department& getDepartment() const noexcept;
 
 		/**
+		 * @brief Добавить дисциплину, которую читает преподаватель
+		 * @param discipline - добавляемая дисциплина; повторно не добавляется.
+		 *        Хранится облегчённая копия без списка преподавателей, чтобы
+		 *        не получить бесконечную вложенность Teacher и Discipline
+		 */
+		void addDiscipline(const Discipline& discipline);
+
+		/**
+		 * @brief Получить дисциплины, которые читает преподаватель
+		 * @return ссылку на массив дисциплин
+		 */
+		const std::vector<Discipline>& getDisciplines() const noexcept;
+
+		/**
+		 * @brief Получить число дисциплин преподавателя
+		 * @return число дисциплин
+		 */
+		std::size_t getDisciplineCount() const noexcept;
+
+		/**
 		 * @brief Получить роль человека в ВУЗе
 		 * @return строку "Преподаватель"
 		 */
@@ -66,7 +95,7 @@ class Teacher : public Person {
 
 		/**
 		 * @brief Получить сведения, характерные для конкретной роли
-		 * @return строку с должностью, степенью и кафедрой
+		 * @return строку с должностью, степенью, кафедрой и числом дисциплин
 		 */
 		std::string getSpecificInfo() const override;
 
@@ -90,3 +119,7 @@ class Teacher : public Person {
 		 */
 		bool operator!=(const Teacher& other) const noexcept;
 };
+
+// Полное определение Discipline нужно там, где преподаватель копируется или
+// уничтожается: его поле std::vector<Discipline> требует завершённого типа.
+#include "Discipline.h"

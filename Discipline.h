@@ -1,11 +1,17 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
+#include <vector>
 
 #include "Department.h"
 
+class Teacher;
+
 /**
  * @brief Класс Дисциплина
+ *
+ * Дисциплина читается кафедрой и знает преподавателей, которые её ведут.
  */
 class Discipline {
 	private:
@@ -18,6 +24,11 @@ class Discipline {
 		 * @brief Кафедра, читающая дисциплину
 		 */
 		Department department;
+
+		/**
+		 * @brief Преподаватели, читающие дисциплину
+		 */
+		std::vector<Teacher> teachers;
 
 	public:
 		/**
@@ -41,6 +52,24 @@ class Discipline {
 		const Department& getDepartment() const noexcept;
 
 		/**
+		 * @brief Добавить преподавателя, читающего дисциплину
+		 * @param teacher - добавляемый преподаватель; повторно не добавляется
+		 */
+		void addTeacher(const Teacher& teacher);
+
+		/**
+		 * @brief Получить преподавателей, читающих дисциплину
+		 * @return ссылку на массив преподавателей
+		 */
+		const std::vector<Teacher>& getTeachers() const noexcept;
+
+		/**
+		 * @brief Получить число преподавателей, читающих дисциплину
+		 * @return число преподавателей
+		 */
+		std::size_t getTeacherCount() const noexcept;
+
+		/**
 		 * @brief Получить краткое представление дисциплины
 		 * @return название дисциплины
 		 */
@@ -48,7 +77,7 @@ class Discipline {
 
 		/**
 		 * @brief Получить полную информацию о дисциплине
-		 * @return строка с названием дисциплины и её кафедрой
+		 * @return строка с названием дисциплины, её кафедрой и числом преподавателей
 		 */
 		std::string getInfo() const;
 
@@ -66,3 +95,7 @@ class Discipline {
 		 */
 		bool operator!=(const Discipline& other) const noexcept;
 };
+
+// Полное определение Teacher нужно там, где дисциплина копируется или
+// уничтожается: её поле std::vector<Teacher> требует завершённого типа.
+#include "Teacher.h"

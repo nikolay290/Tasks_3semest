@@ -7,6 +7,20 @@
 
 #include "FormatUtils.h"
 
+namespace {
+	/**
+	 * @brief Построить облегчённую копию дисциплины: название и кафедра без
+	 *        списка преподавателей. Так группа знает изучаемые дисциплины,
+	 *        но копии преподавателей не вкладываются друг в друга бесконечно.
+	 * @param discipline - исходная дисциплина
+	 * @return дисциплина с тем же названием и кафедрой без преподавателей
+	 */
+	Discipline makeLightDiscipline(const Discipline& discipline) {
+		const Department department(discipline.getDepartment().getName());
+		return Discipline(discipline.getName(), department);
+	}
+}
+
 Group::Group(const std::string& number, const Specialty& specialty)
 	: number(FormatUtils::trim(number)), specialty(specialty) {
 	if (this->number.empty()) {
@@ -17,6 +31,19 @@ Group::Group(const std::string& number, const Specialty& specialty)
 const std::string& Group::getNumber() const noexcept {return number;}
 
 const Specialty& Group::getSpecialty() const noexcept {return specialty;}
+
+void Group::addDiscipline(const Discipline& discipline) {
+	for (const Discipline& added : disciplines) {
+		if (added == discipline) {
+			return;
+		}
+	}
+	disciplines.push_back(makeLightDiscipline(discipline));
+}
+
+const std::vector<Discipline>& Group::getDisciplines() const noexcept {return disciplines;}
+
+std::size_t Group::getDisciplineCount() const noexcept {return disciplines.size();}
 
 void Group::addStudent(const Student& student) {
 	if (findStudentByRecordBook(student.getRecordBook())) {
@@ -37,34 +64,41 @@ bool Group::findStudentByRecordBook(const std::string& recordBook) const {
 }
 
 std::vector<Student> Group::getStudentByRecordBook(const std::string& recordBook) const {
+	std::vector<Student> result;
+	const std::string trimmedRecordBook = FormatUtils::trim(recordBook);
 	for (const Student& student : students) {
-		if (FormatUtils::equalsIgnoreCase(student.getRecordBook(), recordBook)) {
-			return {student};
+		if (FormatUtils::equalsIgnoreCase(student.getRecordBook(), trimmedRecordBook)) {
+			result.push_back(student);
 		}
 	}
-	return {};
+	return result;
 }
 
 double Group::getAverageMark() const noexcept {
-	double sum = 0.0;
-	std::size_t markCount = 0;
-	for (const Student& student : students) {
-		sum += student.getAverageMark() * static_cast<double>(student.getMarkCount());
-		markCount += student.getMarkCount();
-	}
-	if (markCount == 0) {
+	if (students.empty()) {
 		return 0.0;
 	}
-	return sum / static_cast<double>(markCount);
+	double sum = 0.0;
+	std::size_t count = 0;
+	for (const Student& student : students) {
+		for (const double mark : student.getMarks()) {
+			sum += mark;
+			++count;
+		}
+	}
+	if (count == 0) {
+		return 0.0;
+	}
+	return sum / static_cast<double>(count);
 }
 
 std::string Group::getShortInfo() const {
-	return number;
+	return "Группа " + number + " (" + specialty.getShortInfo() + ")";
 }
 
 std::string Group::getInfo() const {
-	return "Группа " + number + " | " + specialty.getShortInfo() +
-		" | Студентов: " + std::to_string(students.size());
+	return getShortInfo() + " | Студентов: " + std::to_string(students.size())
+		+ " | Дисциплин: " + std::to_string(disciplines.size());
 }
 
 bool Group::operator==(const Group& other) const noexcept {

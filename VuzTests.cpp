@@ -30,6 +30,17 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace VuzTests
 {
+    namespace
+    {
+        /** @brief Группа, в которой числится студент в тестах без собственной группы. */
+        Group makeStudentGroup()
+        {
+            const Department department("Информационные системы");
+            const Specialty specialty("09.02.07", "Информатика", department);
+            return Group("1И", specialty);
+        }
+    }
+
     // ==== Тесты класса Date ====
 
     TEST_CLASS(DateTests)
@@ -146,15 +157,15 @@ namespace VuzTests
         TEST_METHOD(Constructor_EmptyFullName_Throws)
         {
             Assert::ExpectException<std::invalid_argument>(
-                [] { Student("", Date(2005, 1, 1), "17-142", 2); });
+                [] { Student("", Date(2005, 1, 1), "17-142", 2, makeStudentGroup()); });
             Assert::ExpectException<std::invalid_argument>(
-                [] { Student("   ", Date(2005, 1, 1), "17-142", 2); });
+                [] { Student("   ", Date(2005, 1, 1), "17-142", 2, makeStudentGroup()); });
         }
 
         /** @brief Краткое представление сокращает имя и отчество. */
         TEST_METHOD(GetShortInfo_ReturnsInitials)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
 
             Assert::AreEqual(std::string("Смирнов А. Н. (2005-04-12)"), student.getShortInfo());
         }
@@ -162,7 +173,7 @@ namespace VuzTests
         /** @brief Возраст считается в полных годах. */
         TEST_METHOD(GetAge_CalculatesFullYears)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2000, 1, 1), "17-142", 2);
+            const Student student("Смирнов Алексей Николаевич", Date(2000, 1, 1), "17-142", 2, makeStudentGroup());
 
             Assert::AreEqual(26, student.getAge(Date(2026, 1, 1)));
             Assert::AreEqual(25, student.getAge(Date(2025, 12, 31)));
@@ -171,8 +182,8 @@ namespace VuzTests
         /** @brief Каждый человек получает собственный id. */
         TEST_METHOD(EachPerson_GetsUniqueId)
         {
-            const Student first("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
-            const Student second("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2);
+            const Student first("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
+            const Student second("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2, makeStudentGroup());
 
             Assert::AreNotEqual(first.getId(), second.getId());
         }
@@ -180,8 +191,8 @@ namespace VuzTests
         /** @brief Явно переданный id сохраняется, а счётчик продвигается. */
         TEST_METHOD(Constructor_ExplicitId_IsKept)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, 500);
-            const Student follower("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2);
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup(), 500);
+            const Student follower("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2, makeStudentGroup());
 
             Assert::AreEqual(500, student.getId());
             Assert::IsTrue(follower.getId() > 500);
@@ -190,7 +201,7 @@ namespace VuzTests
         /** @brief Пустое ФИО нельзя задать и setter'ом. */
         TEST_METHOD(SetFullName_WithSpacesOnly_Throws)
         {
-            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
 
             Assert::ExpectException<std::invalid_argument>([&] { student.setFullName("  "); });
         }
@@ -198,9 +209,9 @@ namespace VuzTests
         /** @brief Коллекция базового типа заполняется объектами-наследниками. */
         TEST_METHOD(PolymorphicCollection_ReturnsDerivedRoles)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
-            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2));
+            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group));
             const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
                 "доктор наук", Department("Прикладная математика"));
 
@@ -223,7 +234,7 @@ namespace VuzTests
         /** @brief Студент и преподаватель с разными id не равны. */
         TEST_METHOD(CompareStudentAndTeacher_DifferentPeople_AreNotEqual)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
             const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
                 "доктор наук", Department("Прикладная математика"));
             const Person& personStudent = student;
@@ -243,20 +254,21 @@ namespace VuzTests
         TEST_METHOD(Constructor_EmptyRecordBook_Throws)
         {
             Assert::ExpectException<std::invalid_argument>(
-                [] { Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "", 2); });
+                [] { Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "", 2,
+                    makeStudentGroup()); });
         }
 
         /** @brief Нулевой курс отклоняется. */
         TEST_METHOD(Constructor_ZeroCourse_Throws)
         {
             Assert::ExpectException<std::invalid_argument>(
-                [] { Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 0); });
+                [] { Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 0, makeStudentGroup()); });
         }
 
         /** @brief Корректная оценка сохраняется. */
         TEST_METHOD(AddMark_ValidMark_IsStored)
         {
-            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
 
             student.addMark(5.0);
             student.addMark(3.0);
@@ -270,7 +282,7 @@ namespace VuzTests
         /** @brief Оценка вне диапазона 2-5 отклоняется. */
         TEST_METHOD(AddMark_OutOfRange_Throws)
         {
-            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
 
             Assert::ExpectException<std::invalid_argument>([&] { student.addMark(1.0); });
             Assert::ExpectException<std::invalid_argument>([&] { student.addMark(5.5); });
@@ -279,7 +291,7 @@ namespace VuzTests
         /** @brief Средний балл считается по всем оценкам. */
         TEST_METHOD(GetAverageMark_CalculatesMean)
         {
-            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
             student.addMark(5.0);
             student.addMark(4.0);
 
@@ -289,7 +301,7 @@ namespace VuzTests
         /** @brief Без оценок средний балл равен нулю. */
         TEST_METHOD(GetAverageMark_NoMarks_ReturnsZero)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
 
             Assert::AreEqual(0.0, student.getAverageMark());
             Assert::IsFalse(student.hasMarks());
@@ -298,7 +310,7 @@ namespace VuzTests
         /** @brief Сведения роли содержат номер книжки и курс. */
         TEST_METHOD(GetSpecificInfo_ContainsRecordBookAndCourse)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, makeStudentGroup());
             const std::string info = student.getSpecificInfo();
 
             Assert::IsTrue(info.find("17-142") != std::string::npos);
@@ -308,11 +320,31 @@ namespace VuzTests
         /** @brief Геттеры возвращают данные, переданные конструктором. */
         TEST_METHOD(Getters_ReturnConstructorValues)
         {
-            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 3);
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 3, makeStudentGroup());
 
             Assert::AreEqual(std::string("17-142"), student.getRecordBook());
             Assert::AreEqual(3u, student.getCourse());
             Assert::AreEqual(std::string("Смирнов Алексей Николаевич"), student.getFullName());
+        }
+
+        /** @brief Студент знает группу, переданную конструктором. */
+        TEST_METHOD(Constructor_StudentKnowsHisGroup)
+        {
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2,
+                makeStudentGroup());
+
+            Assert::AreEqual(std::string("1И"), student.getGroup().getNumber());
+            Assert::AreEqual(std::string("09.02.07"), student.getGroup().getSpecialty().getCode());
+            Assert::AreEqual(std::string("Информатика"), student.getGroup().getSpecialty().getName());
+        }
+
+        /** @brief Сведения студента содержат номер его группы. */
+        TEST_METHOD(GetSpecificInfo_ContainsGroupNumber)
+        {
+            const Student student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2,
+                makeStudentGroup());
+
+            Assert::IsTrue(student.getSpecificInfo().find("Группа: 1И") != std::string::npos);
         }
     };
 
@@ -360,6 +392,49 @@ namespace VuzTests
             Assert::IsTrue(info.find("Прикладная математика") != std::string::npos);
         }
 
+        /** @brief Сначала преподаватель не читает ни одной дисциплины. */
+        TEST_METHOD(Teacher_InitiallyHasNoDisciplines)
+        {
+            const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", Department("Прикладная математика"));
+
+            Assert::AreEqual(std::size_t(0), teacher.getDisciplineCount());
+            Assert::IsTrue(teacher.getDisciplines().empty());
+        }
+
+        /** @brief Преподаватель хранит читаемые дисциплины без дубликатов. */
+        TEST_METHOD(Teacher_AddDiscipline_StoresWithoutDuplicates)
+        {
+            const Department department("Прикладная математика");
+            const Discipline discreteMath("Дискретная математика", department);
+            const Discipline linearAlgebra("Линейная алгебра", department);
+            Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+
+            teacher.addDiscipline(discreteMath);
+            teacher.addDiscipline(linearAlgebra);
+            teacher.addDiscipline(discreteMath);
+
+            Assert::AreEqual(std::size_t(2), teacher.getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                teacher.getDisciplines().at(0).getName());
+            Assert::AreEqual(std::string("Линейная алгебра"),
+                teacher.getDisciplines().at(1).getName());
+            Assert::AreEqual(std::string("Прикладная математика"),
+                teacher.getDisciplines().at(0).getDepartment().getName());
+        }
+
+        /** @brief Сведения преподавателя содержат число дисциплин. */
+        TEST_METHOD(GetSpecificInfo_ContainsDisciplineCount)
+        {
+            const Department department("Прикладная математика");
+            Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            teacher.addDiscipline(Discipline("Дискретная математика", department));
+
+            Assert::IsTrue(teacher.getSpecificInfo().find("Дисциплин: 1") != std::string::npos);
+        }
+
         /** @brief Роль преподавателя определяется корректно. */
         TEST_METHOD(IsTeacher_TrueWhileIsStudent_False)
         {
@@ -380,20 +455,20 @@ namespace VuzTests
         TEST_METHOD(Specialty_EmptyCode_Throws)
         {
             Assert::ExpectException<std::invalid_argument>(
-                [] { Specialty("", "Информатика"); });
+                [] { Specialty("", "Информатика", Department("Информационные системы")); });
         }
 
         /** @brief Пустое название специальности отклоняется. */
         TEST_METHOD(Specialty_EmptyName_Throws)
         {
             Assert::ExpectException<std::invalid_argument>(
-                [] { Specialty("09.02.07", "   "); });
+                [] { Specialty("09.02.07", "   ", Department("Информационные системы")); });
         }
 
         /** @brief Краткое представление специальности содержит код и название. */
         TEST_METHOD(Specialty_GetShortInfo_ContainsCodeAndName)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
 
             Assert::AreEqual(std::string("09.02.07 - Информатика"), specialty.getShortInfo());
         }
@@ -401,7 +476,7 @@ namespace VuzTests
         /** @brief Пустой номер группы отклоняется. */
         TEST_METHOD(Group_EmptyNumber_Throws)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
 
             Assert::ExpectException<std::invalid_argument>(
                 [&] { Group("", specialty); });
@@ -410,7 +485,7 @@ namespace VuzTests
         /** @brief Группа хранит специальность, переданную конструктором. */
         TEST_METHOD(Group_KnowsItsSpecialty)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             const Group group("1И", specialty);
 
             Assert::AreEqual(std::string("1И"), group.getNumber());
@@ -420,11 +495,11 @@ namespace VuzTests
         /** @brief Добавленные студенты попадают в список группы. */
         TEST_METHOD(AddStudent_GrowsStudentList)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
 
-            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2));
-            group.addStudent(Student("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2));
+            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group));
+            group.addStudent(Student("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2, group));
 
             Assert::AreEqual(std::size_t(2), group.getStudentCount());
         }
@@ -432,20 +507,20 @@ namespace VuzTests
         /** @brief Повторное добавление студента с той же книжкой отклоняется. */
         TEST_METHOD(AddStudent_DuplicateRecordBook_Throws)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
-            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2));
+            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group));
 
             Assert::ExpectException<std::invalid_argument>(
-                [&] { group.addStudent(Student("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-142", 2)); });
+                [&] { group.addStudent(Student("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-142", 2, group)); });
         }
 
         /** @brief Поиск студента по номеру книжки работает без учёта регистра. */
         TEST_METHOD(FindStudentByRecordBook_ReturnsStudent)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
-            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2));
+            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group));
 
             Assert::IsTrue(group.findStudentByRecordBook("17-142"));
             const std::vector<Student> found = group.getStudentByRecordBook("17-142");
@@ -456,7 +531,7 @@ namespace VuzTests
         /** @brief Неизвестный номер книжки не находится. */
         TEST_METHOD(FindStudentByRecordBook_WrongNumber_ReturnsNull)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
 
             Assert::IsFalse(group.findStudentByRecordBook("99-999"));
@@ -466,11 +541,11 @@ namespace VuzTests
         /** @brief Средний балл группы усредняет оценки всех студентов. */
         TEST_METHOD(GetAverageMark_AggregatesAllStudents)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
-            Student first("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            Student first("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group);
             first.addMark(5.0);
-            Student second("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2);
+            Student second("Волков Дмитрий Андреевич", Date(2005, 9, 30), "17-143", 2, group);
             second.addMark(4.0);
             second.addMark(4.0);
             group.addStudent(first);
@@ -482,14 +557,31 @@ namespace VuzTests
         /** @brief Информация о группе содержит специальность и число студентов. */
         TEST_METHOD(Group_GetInfo_ContainsSpecialtyAndStudentCount)
         {
-            const Specialty specialty("09.02.07", "Информатика");
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
             Group group("1И", specialty);
-            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2));
+            group.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group));
             const std::string info = group.getInfo();
 
             Assert::IsTrue(info.find("1И") != std::string::npos);
             Assert::IsTrue(info.find("09.02.07") != std::string::npos);
             Assert::IsTrue(info.find("Студентов: 1") != std::string::npos);
+        }
+
+        /** @brief При зачислении группа становится известна студенту. */
+        TEST_METHOD(AddStudent_StudentLearnsItsActualGroup)
+        {
+            const Specialty specialty("09.02.07", "Информатика", Department("Информационные системы"));
+            Group target("1И", specialty);
+            const Group other("2И", specialty);
+            target.addStudent(Student("Смирнов Алексей Николаевич", Date(2005, 4, 12),
+                "17-142", 2, other));
+
+            const std::vector<Student>& students = target.getStudents();
+
+            Assert::AreEqual(std::size_t(1), students.size());
+            Assert::AreEqual(std::string("1И"), students.at(0).getGroup().getNumber());
+            Assert::AreEqual(std::string("09.02.07"),
+                students.at(0).getGroup().getSpecialty().getCode());
         }
     };
 
@@ -546,6 +638,128 @@ namespace VuzTests
             Assert::ExpectException<std::invalid_argument>(
                 [] { Discipline("", Department("Прикладная математика")); });
         }
+
+        /** @brief Дисциплина хранит читающих её преподавателей без дубликатов. */
+        TEST_METHOD(Discipline_StoresTeachersWithoutDuplicates)
+        {
+            const Department department("Прикладная математика");
+            const Teacher first("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            const Teacher second("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
+                "кандидат наук", department);
+            Discipline discipline("Дискретная математика", department);
+
+            discipline.addTeacher(first);
+            discipline.addTeacher(second);
+            discipline.addTeacher(first);
+
+            Assert::AreEqual(std::size_t(2), discipline.getTeacherCount());
+            Assert::AreEqual(first.getId(), discipline.getTeachers().at(0).getId());
+            Assert::AreEqual(second.getId(), discipline.getTeachers().at(1).getId());
+            Assert::IsTrue(discipline.getInfo().find("Преподавателей: 2") != std::string::npos);
+        }
+
+        /** @brief При добавлении в дисциплину преподаватель узнаёт о ней. */
+        TEST_METHOD(Discipline_AddTeacher_TeacherLearnsDiscipline)
+        {
+            const Department department("Прикладная математика");
+            Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            Discipline discipline("Дискретная математика", department);
+
+            discipline.addTeacher(teacher);
+
+            const Teacher& stored = discipline.getTeachers().at(0);
+            Assert::AreEqual(std::size_t(1), stored.getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                stored.getDisciplines().at(0).getName());
+            Assert::AreEqual(std::string("Прикладная математика"),
+                stored.getDisciplines().at(0).getDepartment().getName());
+            Assert::AreEqual(std::size_t(0),
+                stored.getDisciplines().at(0).getTeacherCount());
+        }
+
+        /** @brief Кафедра хранит группы, преподавателей, специальности и дисциплины. */
+        TEST_METHOD(Department_KnowsAllItsObjects)
+        {
+            Department department("Информатика");
+            const Specialty specialty("09.02.07", "Информатика", department);
+            const Group group("1И", specialty);
+            const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            const Discipline discipline("Дискретная математика", department);
+
+            department.addGroup(group);
+            department.addTeacher(teacher);
+            department.addSpecialty(specialty);
+            department.addDiscipline(discipline);
+
+            Assert::AreEqual(std::size_t(1), department.getGroupCount());
+            Assert::AreEqual(std::size_t(1), department.getTeacherCount());
+            Assert::AreEqual(std::size_t(1), department.getSpecialtyCount());
+            Assert::AreEqual(std::size_t(1), department.getDisciplineCount());
+            Assert::AreEqual(std::string("1И"), department.getGroups().at(0).getNumber());
+            Assert::AreEqual(std::string("Иванов Иван Иванович"),
+                department.getTeachers().at(0).getFullName());
+            Assert::AreEqual(std::string("09.02.07"), department.getSpecialties().at(0).getCode());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                department.getDisciplines().at(0).getName());
+        }
+
+        /** @brief Повторная регистрация преподавателя не создаёт дубликат. */
+        TEST_METHOD(Department_AddTeacherTwice_KeepsOne)
+        {
+            Department department("Информатика");
+            const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+
+            department.addTeacher(teacher);
+            department.addTeacher(teacher);
+
+            Assert::AreEqual(std::size_t(1), department.getTeacherCount());
+        }
+
+        /** @brief getInfo() содержит название кафедры и счётчики объектов. */
+        TEST_METHOD(Department_GetInfo_ContainsCounts)
+        {
+            Department department("Информатика");
+            const Specialty specialty("09.02.07", "Информатика", department);
+            department.addSpecialty(specialty);
+            const std::string info = department.getInfo();
+
+            Assert::IsTrue(info.find("Кафедра Информатика") != std::string::npos);
+            Assert::IsTrue(info.find("Специальностей: 1") != std::string::npos);
+            Assert::IsTrue(info.find("Групп: 0") != std::string::npos);
+        }
+
+        /** @brief Специальность помнит кафедру, переданную конструктором. */
+        TEST_METHOD(Specialty_KnowsItsDepartment)
+        {
+            const Specialty specialty("09.02.07", "Информатика",
+                Department("Информационные системы"));
+
+            Assert::AreEqual(std::string("Информационные системы"),
+                specialty.getDepartment().getName());
+            Assert::IsTrue(specialty.getInfo().find("Кафедра: Информационные системы") != std::string::npos);
+        }
+
+        /** @brief Специальность хранит обучающиеся на ней группы без дубликатов. */
+        TEST_METHOD(Specialty_StoresGroupsWithoutDuplicates)
+        {
+            const Department department("Информационные системы");
+            const Specialty specialty("09.02.07", "Информатика", department);
+            const Group first("1И", specialty);
+            const Group second("2И", specialty);
+
+            Specialty stored = specialty;
+            stored.addGroup(first);
+            stored.addGroup(second);
+            stored.addGroup(first);
+
+            Assert::AreEqual(std::size_t(2), stored.getGroupCount());
+            Assert::AreEqual(std::string("1И"), stored.getGroups().at(0).getNumber());
+            Assert::AreEqual(std::string("2И"), stored.getGroups().at(1).getNumber());
+        }
     };
 
     // ==== Тесты класса Lesson ====
@@ -555,7 +769,7 @@ namespace VuzTests
     private:
         static Specialty makeSpecialty()
         {
-            return Specialty("09.02.07", "Информатика");
+            return Specialty("09.02.07", "Информатика", Department("Информационные системы"));
         }
 
     public:
@@ -612,6 +826,25 @@ namespace VuzTests
             Assert::AreEqual(std::size_t(2), lesson.getTeacherCount());
             Assert::IsTrue(lesson.isTaughtBy(first));
             Assert::IsTrue(lesson.isTaughtBy(second));
+        }
+
+        /** @brief Занятие передаёт своих преподавателей дисциплине. */
+        TEST_METHOD(Lesson_AddsItsTeachersToDiscipline)
+        {
+            const Department department("Прикладная математика");
+            const Discipline discipline("Дискретная математика", department);
+            const Group group("1И", makeSpecialty());
+            const Teacher first("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            const Teacher second("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
+                "кандидат наук", department);
+
+            const Lesson lesson(LessonType::Lab, discipline, group, {first, second},
+                "12", Date(2026, 9, 3));
+
+            Assert::AreEqual(std::size_t(2), lesson.getDiscipline().getTeacherCount());
+            Assert::AreEqual(first.getId(), lesson.getDiscipline().getTeachers().at(0).getId());
+            Assert::AreEqual(second.getId(), lesson.getDiscipline().getTeachers().at(1).getId());
         }
 
         /** @brief Лекция хранит ровно одного преподавателя. */
@@ -724,8 +957,8 @@ namespace VuzTests
             university.addDepartment(appliedMath);
             university.addDepartment(informationSystems);
 
-            const Specialty informatics("09.02.07", "Информатика");
-            const Specialty economics("38.02.01", "Экономика");
+            const Specialty informatics("09.02.07", "Информатика", informationSystems);
+            const Specialty economics("38.02.01", "Экономика", appliedMath);
             university.addSpecialty(informatics);
             university.addSpecialty(economics);
 
@@ -750,16 +983,16 @@ namespace VuzTests
             Group group2I("2И", informatics);
             Group group1E("1Э", economics);
 
-            Student smirnov("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2);
+            Student smirnov("Смирнов Алексей Николаевич", Date(2005, 4, 12), "17-142", 2, group1I);
             smirnov.addMark(5.0);
             smirnov.addMark(4.0);
             group1I.addStudent(smirnov);
 
-            Student orlova("Орлова Елена Викторовна", Date(2004, 12, 8), "16-101", 3);
+            Student orlova("Орлова Елена Викторовна", Date(2004, 12, 8), "16-101", 3, group2I);
             orlova.addMark(5.0);
             group2I.addStudent(orlova);
 
-            Student morozov("Морозов Павел Олегович", Date(2006, 2, 17), "18-201", 1);
+            Student morozov("Морозов Павел Олегович", Date(2006, 2, 17), "18-201", 1, group1E);
             morozov.addMark(3.0);
             group1E.addStudent(morozov);
 
@@ -782,10 +1015,12 @@ namespace VuzTests
         TEST_METHOD(AddSpecialty_DuplicateCode_Throws)
         {
             University university("Тестовый ВУЗ");
-            university.addSpecialty(Specialty("09.02.07", "Информатика"));
+            university.addSpecialty(Specialty("09.02.07", "Информатика",
+                Department("Информационные системы")));
 
             Assert::ExpectException<std::invalid_argument>(
-                [&] { university.addSpecialty(Specialty("09.02.07", "Информатика")); });
+                [&] { university.addSpecialty(Specialty("09.02.07", "Информатика",
+                    Department("Информационные системы"))); });
         }
 
         /** @brief Повторное добавление кафедры отклоняется. */
@@ -802,7 +1037,7 @@ namespace VuzTests
         TEST_METHOD(AddGroup_DuplicateNumber_Throws)
         {
             University university("Тестовый ВУЗ");
-            const Specialty informatics("09.02.07", "Информатика");
+            const Specialty informatics("09.02.07", "Информатика", Department("Информационные системы"));
             university.addGroup(Group("1И", informatics));
 
             Assert::ExpectException<std::invalid_argument>(
@@ -813,7 +1048,7 @@ namespace VuzTests
         TEST_METHOD(AddLesson_UnknownTeacher_Throws)
         {
             University university("Тестовый ВУЗ");
-            const Specialty informatics("09.02.07", "Информатика");
+            const Specialty informatics("09.02.07", "Информатика", Department("Информационные системы"));
             const Discipline discipline("Дискретная математика", Department("Прикладная математика"));
             const Group group("1И", informatics);
             const Teacher stranger("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
@@ -829,7 +1064,7 @@ namespace VuzTests
         TEST_METHOD(AddLesson_UnknownGroup_Throws)
         {
             University university = makeUniversity();
-            const Specialty informatics("09.02.07", "Информатика");
+            const Specialty informatics("09.02.07", "Информатика", Department("Информационные системы"));
             const Group unknownGroup("99З", informatics);
             const Discipline discipline("Дискретная математика", Department("Прикладная математика"));
             const Teacher teacher = university.getTeachers().at(0);
@@ -858,6 +1093,19 @@ namespace VuzTests
             Assert::AreEqual(std::size_t(1), students.size());
             Assert::AreEqual(std::string("Орлова Елена Викторовна"), students.at(0).getFullName());
             Assert::IsTrue(university.getStudentByRecordBook("99-999").empty());
+        }
+
+        /** @brief Найденный студент знает группу, в которой он обучается. */
+        TEST_METHOD(FindStudentByRecordBook_StudentKnowsHisGroup)
+        {
+            const University university = makeUniversity();
+
+            const std::vector<Student> students = university.getStudentByRecordBook("16-101");
+
+            Assert::AreEqual(std::size_t(1), students.size());
+            Assert::AreEqual(std::string("2И"), students.at(0).getGroup().getNumber());
+            Assert::AreEqual(std::string("09.02.07"),
+                students.at(0).getGroup().getSpecialty().getCode());
         }
 
         /** @brief Поиск по части ФИО регистронезависим. */
@@ -929,7 +1177,8 @@ namespace VuzTests
             const University university = makeUniversity();
 
             const std::vector<Group> groups =
-                university.getGroupsBySpecialty(Specialty("09.02.07", "Информатика"));
+                university.getGroupsBySpecialty(Specialty("09.02.07", "Информатика",
+                    Department("Информационные системы")));
 
             Assert::AreEqual(std::size_t(2), groups.size());
             Assert::AreEqual(std::string("1И"), groups.at(0).getNumber());
@@ -997,6 +1246,235 @@ namespace VuzTests
             Assert::IsFalse(university.findDepartmentByName("Неизвестная кафедра"));
             Assert::IsTrue(university.findGroupByNumber("1И"));
             Assert::IsFalse(university.findGroupByNumber("99З"));
+        }
+
+        /** @brief При добавлении объектов ВУЗ регистрирует их на кафедре. */
+        TEST_METHOD(AddObjects_RegistersThemInDepartment)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Информационные системы");
+            university.addDepartment(department);
+
+            const Specialty specialty("09.02.07", "Информатика", department);
+            university.addSpecialty(specialty);
+
+            const Group group("1И", specialty);
+            university.addGroup(group);
+
+            const Teacher teacher("Кузнецова Мария Сергеевна", Date(1988, 11, 3), "доцент",
+                "кандидат наук", department);
+            university.addTeacher(teacher);
+
+            const Discipline discipline("Базы данных", department);
+            university.addDiscipline(discipline);
+
+            const Department& stored = university.getDepartments().at(0);
+            Assert::AreEqual(std::size_t(1), stored.getSpecialtyCount());
+            Assert::AreEqual(std::size_t(1), stored.getGroupCount());
+            Assert::AreEqual(std::size_t(1), stored.getTeacherCount());
+            Assert::AreEqual(std::size_t(1), stored.getDisciplineCount());
+            Assert::AreEqual(std::string("09.02.07"), stored.getSpecialties().at(0).getCode());
+            Assert::AreEqual(std::string("1И"), stored.getGroups().at(0).getNumber());
+            Assert::AreEqual(std::string("Кузнецова Мария Сергеевна"),
+                stored.getTeachers().at(0).getFullName());
+            Assert::AreEqual(std::string("Базы данных"), stored.getDisciplines().at(0).getName());
+            Assert::AreEqual(std::size_t(1), university.getSpecialties().at(0).getGroupCount());
+            Assert::AreEqual(std::size_t(1), stored.getSpecialties().at(0).getGroupCount());
+            Assert::AreEqual(std::string("1И"),
+                stored.getSpecialties().at(0).getGroups().at(0).getNumber());
+        }
+
+        /** @brief Группа регистрируется в специальности ВУЗа и на кафедре. */
+        TEST_METHOD(AddGroup_RegistersItInSpecialty)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Информационные системы");
+            university.addDepartment(department);
+
+            const Specialty specialty("09.02.07", "Информатика", department);
+            university.addSpecialty(specialty);
+            const Group group("1И", specialty);
+            university.addGroup(group);
+
+            const Specialty& stored = university.getSpecialties().at(0);
+            Assert::AreEqual(std::size_t(1), stored.getGroupCount());
+            Assert::AreEqual(std::string("1И"), stored.getGroups().at(0).getNumber());
+            const Specialty& storedInDepartment =
+                university.getDepartments().at(0).getSpecialties().at(0);
+            Assert::AreEqual(std::size_t(1), storedInDepartment.getGroupCount());
+            Assert::AreEqual(std::string("1И"),
+                storedInDepartment.getGroups().at(0).getNumber());
+        }
+
+        /** @brief Специальность, добавленная после группы, получает её в свой список. */
+        TEST_METHOD(AddSpecialtyAfterGroup_BackFillsGroups)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Информационные системы");
+            university.addDepartment(department);
+
+            const Specialty specialty("09.02.07", "Информатика", department);
+            const Group group("1И", specialty);
+            university.addGroup(group);
+
+            university.addSpecialty(specialty);
+
+            const Specialty& stored = university.getSpecialties().at(0);
+            Assert::AreEqual(std::size_t(1), stored.getGroupCount());
+            Assert::AreEqual(std::string("1И"), stored.getGroups().at(0).getNumber());
+            const Specialty& storedInDepartment =
+                university.getDepartments().at(0).getSpecialties().at(0);
+            Assert::AreEqual(std::size_t(1), storedInDepartment.getGroupCount());
+        }
+
+        /** @brief Кафедра, добавленная позже, получает уже созданные объекты. */
+        TEST_METHOD(AddDepartmentAfterObjects_FillsDepartment)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Информационные системы");
+
+            const Specialty specialty("09.02.07", "Информатика", department);
+            university.addSpecialty(specialty);
+
+            const Group group("1И", specialty);
+            university.addGroup(group);
+
+            const Teacher teacher("Кузнецова Мария Сергеевна", Date(1988, 11, 3), "доцент",
+                "кандидат наук", department);
+            university.addTeacher(teacher);
+
+            const Discipline discipline("Базы данных", department);
+            university.addDiscipline(discipline);
+
+            university.addDepartment(department);
+
+            const Department& stored = university.getDepartments().at(0);
+            Assert::AreEqual(std::size_t(1), stored.getSpecialtyCount());
+            Assert::AreEqual(std::size_t(1), stored.getGroupCount());
+            Assert::AreEqual(std::size_t(1), stored.getTeacherCount());
+            Assert::AreEqual(std::size_t(1), stored.getDisciplineCount());
+        }
+
+        /** @brief Занятие регистрирует своих преподавателей в дисциплине ВУЗа и на кафедре. */
+        TEST_METHOD(AddLesson_FillsDisciplineTeachers)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Прикладная математика");
+            university.addDepartment(department);
+
+            const Discipline discipline("Дискретная математика", department);
+            university.addDiscipline(discipline);
+
+            const Teacher first("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            const Teacher second("Петров Пётр Петрович", Date(1982, 7, 25), "доцент",
+                "кандидат наук", department);
+            university.addTeacher(first);
+            university.addTeacher(second);
+
+            const Specialty specialty("09.02.07", "Информатика", department);
+            university.addSpecialty(specialty);
+            const Group group("1И", specialty);
+            university.addGroup(group);
+
+            university.addLesson(Lesson(LessonType::Lab, discipline, group, {first, second},
+                "12", Date(2026, 9, 3)));
+
+            const Discipline& stored = university.getDisciplines().at(0);
+            Assert::AreEqual(std::size_t(2), stored.getTeacherCount());
+            Assert::AreEqual(first.getId(), stored.getTeachers().at(0).getId());
+            Assert::AreEqual(second.getId(), stored.getTeachers().at(1).getId());
+            const Department& storedDepartment = university.getDepartments().at(0);
+            Assert::AreEqual(std::size_t(2),
+                storedDepartment.getDisciplines().at(0).getTeacherCount());
+
+            const std::vector<Teacher> storedTeachers =
+                university.getTeacherByFullName("Петров Пётр Петрович");
+            Assert::AreEqual(std::size_t(1), storedTeachers.size());
+            Assert::AreEqual(std::size_t(1), storedTeachers.at(0).getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                storedTeachers.at(0).getDisciplines().at(0).getName());
+        }
+
+        /** @brief Преподаватель, добавленный после дисциплины, узнаёт её. */
+        TEST_METHOD(AddTeacherAfterDiscipline_BackFillsDisciplines)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Прикладная математика");
+            university.addDepartment(department);
+
+            const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            Discipline discipline("Дискретная математика", department);
+            discipline.addTeacher(teacher);
+            university.addDiscipline(discipline);
+            university.addTeacher(teacher);
+
+            const std::vector<Teacher> stored =
+                university.getTeacherByFullName("Иванов Иван Иванович");
+            Assert::AreEqual(std::size_t(1), stored.size());
+            Assert::AreEqual(std::size_t(1), stored.at(0).getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                stored.at(0).getDisciplines().at(0).getName());
+        }
+
+        /** @brief В готовом ВУЗе преподаватели знают прочитанные дисциплины. */
+        TEST_METHOD(AddLesson_TeachersKnowTheirDisciplines)
+        {
+            const University university = makeUniversity();
+
+            const std::vector<Teacher> ivanov =
+                university.getTeacherByFullName("Иванов Иван Иванович");
+            const std::vector<Teacher> petrov =
+                university.getTeacherByFullName("Петров Пётр Петрович");
+
+            Assert::AreEqual(std::size_t(1), ivanov.size());
+            Assert::AreEqual(std::size_t(1), petrov.size());
+            Assert::AreEqual(std::size_t(1), ivanov.at(0).getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                ivanov.at(0).getDisciplines().at(0).getName());
+            Assert::AreEqual(std::size_t(2), petrov.at(0).getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                petrov.at(0).getDisciplines().at(0).getName());
+            Assert::AreEqual(std::string("Линейная алгебра"),
+                petrov.at(0).getDisciplines().at(1).getName());
+        }
+
+        /** @brief Дисциплина, добавленная после занятия, получает его преподавателей. */
+        TEST_METHOD(AddDisciplineAfterLesson_BackFillsTeachers)
+        {
+            University university("Тестовый ВУЗ");
+            const Department department("Прикладная математика");
+            university.addDepartment(department);
+
+            const Teacher teacher("Иванов Иван Иванович", Date(1975, 3, 12), "профессор",
+                "доктор наук", department);
+            university.addTeacher(teacher);
+
+            const Specialty specialty("09.02.07", "Информатика", department);
+            university.addSpecialty(specialty);
+            const Group group("1И", specialty);
+            university.addGroup(group);
+
+            const Discipline discipline("Дискретная математика", department);
+            university.addLesson(Lesson(LessonType::Lecture, discipline, group, {teacher},
+                "25", Date(2026, 9, 1)));
+
+            university.addDiscipline(discipline);
+
+            const Discipline& stored = university.getDisciplines().at(0);
+            Assert::AreEqual(std::size_t(1), stored.getTeacherCount());
+            Assert::AreEqual(teacher.getId(), stored.getTeachers().at(0).getId());
+            const Department& storedDepartment = university.getDepartments().at(0);
+            Assert::AreEqual(std::size_t(1),
+                storedDepartment.getDisciplines().at(0).getTeacherCount());
+
+            const std::vector<Teacher> storedTeachers =
+                university.getTeacherByFullName("Иванов Иван Иванович");
+            Assert::AreEqual(std::size_t(1), storedTeachers.size());
+            Assert::AreEqual(std::size_t(1), storedTeachers.at(0).getDisciplineCount());
+            Assert::AreEqual(std::string("Дискретная математика"),
+                storedTeachers.at(0).getDisciplines().at(0).getName());
         }
     };
 

@@ -1,3 +1,6 @@
+#include "Discipline.h"
+#include "Teacher.h"
+
 #include "Group.h"
 
 #include <stdexcept>
@@ -20,7 +23,9 @@ void Group::addStudent(const Student& student) {
 		throw std::invalid_argument("Студент с номером зачётной книжки " +
 			student.getRecordBook() + " уже есть в группе " + number);
 	}
-	students.push_back(student);
+	Student stored = student;
+	stored.setGroup(*this);
+	students.push_back(stored);
 }
 
 const std::vector<Student>& Group::getStudents() const noexcept {return students;}

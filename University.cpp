@@ -1,3 +1,6 @@
+#include "Discipline.h"
+#include "Teacher.h"
+
 #include "University.h"
 
 #include <stdexcept>
@@ -31,7 +34,17 @@ void University::addSpecialty(const Specialty& specialty) {
 	if (findSpecialtyByCode(specialty.getCode())) {
 		throw std::invalid_argument("Специальность с кодом " + specialty.getCode() + " уже есть в ВУЗе");
 	}
-	specialties.push_back(specialty);
+	Specialty stored = specialty;
+	for (const Group& group : groups) {
+		if (group.getSpecialty() == stored) {
+			stored.addGroup(group);
+		}
+	}
+	specialties.push_back(stored);
+	const std::size_t index = findDepartmentIndex(stored.getDepartment().getName());
+	if (index < departments.size()) {
+		departments.at(index).addSpecialty(stored);
+	}
 }
 
 void University::addDepartment(const Department& department) {
@@ -39,6 +52,27 @@ void University::addDepartment(const Department& department) {
 		throw std::invalid_argument("Кафедра " + department.getName() + " уже есть в ВУЗе");
 	}
 	departments.push_back(department);
+	Department& added = departments.back();
+	for (const Specialty& specialty : specialties) {
+		if (specialty.getDepartment() == added) {
+			added.addSpecialty(specialty);
+		}
+	}
+	for (const Teacher& teacher : teachers) {
+		if (teacher.getDepartment() == added) {
+			added.addTeacher(teacher);
+		}
+	}
+	for (const Discipline& discipline : disciplines) {
+		if (discipline.getDepartment() == added) {
+			added.addDiscipline(discipline);
+		}
+	}
+	for (const Group& group : groups) {
+		if (group.getSpecialty().getDepartment() == added) {
+			added.addGroup(group);
+		}
+	}
 }
 
 void University::addDiscipline(const Discipline& discipline) {
@@ -47,7 +81,23 @@ void University::addDiscipline(const Discipline& discipline) {
 			throw std::invalid_argument("Дисциплина " + discipline.getName() + " уже есть в ВУЗе");
 		}
 	}
-	disciplines.push_back(discipline);
+	Discipline stored = discipline;
+	for (const Lesson& lesson : lessons) {
+		if (lesson.getDiscipline() != stored) {
+			continue;
+		}
+		for (const Teacher& lessonTeacher : lesson.getTeachers()) {
+			stored.addTeacher(lessonTeacher);
+		}
+	}
+	for (const Teacher& disciplineTeacher : stored.getTeachers()) {
+		registerDisciplineForTeacher(stored, disciplineTeacher.getId());
+	}
+	disciplines.push_back(stored);
+	const std::size_t index = findDepartmentIndex(stored.getDepartment().getName());
+	if (index < departments.size()) {
+		departments.at(index).addDiscipline(stored);
+	}
 }
 
 void University::addGroup(const Group& group) {
@@ -55,6 +105,22 @@ void University::addGroup(const Group& group) {
 		throw std::invalid_argument("Группа " + group.getNumber() + " уже есть в ВУЗе");
 	}
 	groups.push_back(group);
+	const Specialty& groupSpecialty = group.getSpecialty();
+	for (Specialty& specialty : specialties) {
+		if (specialty != groupSpecialty) {
+			continue;
+		}
+		specialty.addGroup(group);
+		const std::size_t index = findDepartmentIndex(specialty.getDepartment().getName());
+		if (index < departments.size()) {
+			departments.at(index).addSpecialty(specialty);
+		}
+		break;
+	}
+	const std::size_t index = findDepartmentIndex(groupSpecialty.getDepartment().getName());
+	if (index < departments.size()) {
+		departments.at(index).addGroup(group);
+	}
 }
 
 void University::addTeacher(const Teacher& teacher) {
@@ -62,7 +128,20 @@ void University::addTeacher(const Teacher& teacher) {
 		throw std::invalid_argument("Преподаватель с id " + std::to_string(teacher.getId()) +
 			" уже есть в ВУЗе");
 	}
-	teachers.push_back(teacher);
+	Teacher stored = teacher;
+	for (const Discipline& discipline : disciplines) {
+		for (const Teacher& disciplineTeacher : discipline.getTeachers()) {
+			if (disciplineTeacher.getId() == stored.getId()) {
+				stored.addDiscipline(discipline);
+				break;
+			}
+		}
+	}
+	teachers.push_back(stored);
+	const std::size_t index = findDepartmentIndex(stored.getDepartment().getName());
+	if (index < departments.size()) {
+		departments.at(index).addTeacher(stored);
+	}
 }
 
 void University::addLesson(const Lesson& lesson) {
@@ -76,6 +155,20 @@ void University::addLesson(const Lesson& lesson) {
 		}
 	}
 	lessons.push_back(lesson);
+	for (Discipline& stored : disciplines) {
+		if (stored != lesson.getDiscipline()) {
+			continue;
+		}
+		for (const Teacher& lessonTeacher : lesson.getTeachers()) {
+			stored.addTeacher(lessonTeacher);
+			registerDisciplineForTeacher(stored, lessonTeacher.getId());
+		}
+		const std::size_t index = findDepartmentIndex(stored.getDepartment().getName());
+		if (index < departments.size()) {
+			departments.at(index).addDiscipline(stored);
+		}
+		break;
+	}
 }
 
 const std::vector<Specialty>& University::getSpecialties() const noexcept {return specialties;}
@@ -89,6 +182,29 @@ const std::vector<Group>& University::getGroups() const noexcept {return groups;
 const std::vector<Teacher>& University::getTeachers() const noexcept {return teachers;}
 
 const std::vector<Lesson>& University::getLessons() const noexcept {return lessons;}
+
+void University::registerDisciplineForTeacher(const Discipline& discipline, const int teacherId) {
+	for (Teacher& teacher : teachers) {
+		if (teacher.getId() != teacherId) {
+			continue;
+		}
+		teacher.addDiscipline(discipline);
+		const std::size_t index = findDepartmentIndex(teacher.getDepartment().getName());
+		if (index < departments.size()) {
+			departments.at(index).addTeacher(teacher);
+		}
+		return;
+	}
+}
+
+std::size_t University::findDepartmentIndex(const std::string& departmentName) const noexcept {
+	for (std::size_t index = 0; index < departments.size(); ++index) {
+		if (FormatUtils::equalsIgnoreCase(departments.at(index).getName(), departmentName)) {
+			return index;
+		}
+	}
+	return departments.size();
+}
 
 bool University::findSpecialtyByCode(const std::string& code) const noexcept {
 	for (const Specialty& specialty : specialties) {

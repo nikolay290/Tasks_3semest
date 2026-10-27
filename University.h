@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -53,6 +54,20 @@ class University {
 		 * @brief Массив занятий
 		 */
 		std::vector<Lesson> lessons;
+
+		/**
+		 * @brief Найти индекс кафедры по названию
+		 * @param departmentName - название кафедры
+		 * @return индекс кафедры или departments.size(), если кафедры нет
+		 */
+		std::size_t findDepartmentIndex(const std::string& departmentName) const noexcept;
+
+		/**
+		 * @brief Зарегистрировать дисциплину у преподавателя ВУЗа
+		 * @param discipline - дисциплина
+		 * @param teacherId - id преподавателя
+		 */
+		void registerDisciplineForTeacher(const Discipline& discipline, const int teacherId);
 
 	public:
 		/**

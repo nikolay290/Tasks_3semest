@@ -6,6 +6,7 @@
 
 #include "Specialty.h"
 
+class Discipline;
 class Student;
 
 /**
@@ -27,6 +28,11 @@ class Group {
 		 * @brief Студенты группы
 		 */
 		std::vector<Student> students;
+
+		/**
+		 * @brief Дисциплины, которые изучает группа
+		 */
+		std::vector<Discipline> disciplines;
 
 	public:
 		/**
@@ -50,10 +56,29 @@ class Group {
 		const Specialty& getSpecialty() const noexcept;
 
 		/**
+		 * @brief Добавить дисциплину, которую изучает группа
+		 * @param discipline - добавляемая дисциплина; повторно не добавляется.
+		 *        Хранится облегчённая копия без списка преподавателей
+		 */
+		void addDiscipline(const Discipline& discipline);
+
+		/**
+		 * @brief Получить дисциплины, которые изучает группа
+		 * @return ссылку на массив дисциплин
+		 */
+		const std::vector<Discipline>& getDisciplines() const noexcept;
+
+		/**
+		 * @brief Получить число дисциплин группы
+		 * @return число дисциплин
+		 */
+		std::size_t getDisciplineCount() const noexcept;
+
+		/**
 		 * @brief Добавить студента в группу
-		 * @param student - добавляемый студент
+		 * @param student - добавляемый студент; повторно не добавляется
 		 * @throws std::invalid_argument если студент с таким номером
-		 *         зачётной книжки уже есть в группе
+		 *         зачётной книжки уже есть
 		 */
 		void addStudent(const Student& student);
 
@@ -72,8 +97,7 @@ class Group {
 		/**
 		 * @brief Найти студента по номеру зачётной книжки
 		 * @param recordBook - номер зачётной книжки
-		 * @return true, если в группе есть студент с таким номером
-		 *         зачётной книжки
+		 * @return true, если студент с таким номером есть в группе
 		 */
 		bool findStudentByRecordBook(const std::string& recordBook) const;
 
@@ -87,14 +111,13 @@ class Group {
 
 		/**
 		 * @brief Получить средний балл группы
-		 * @return средний балл по всем оценкам всех студентов или 0,
-		 *         если оценок нет
+		 * @return средний балл всех студентов или 0, если студентов нет
 		 */
 		double getAverageMark() const noexcept;
 
 		/**
 		 * @brief Получить краткое представление группы
-		 * @return номер группы
+		 * @return строка вида "Группа 1И (Информатика и вычислительная техника)"
 		 */
 		std::string getShortInfo() const;
 
@@ -107,7 +130,7 @@ class Group {
 		/**
 		 * @brief Стандартный оператор сравнения "равно"
 		 * @param other - вторая группа
-		 * @return true, если номера и специальности групп совпадают
+		 * @return true, если номера групп совпадают
 		 */
 		bool operator==(const Group& other) const noexcept;
 
@@ -119,6 +142,8 @@ class Group {
 		bool operator!=(const Group& other) const noexcept;
 };
 
-// Полное определение Student нужно там, где группа копируется или уничтожается:
-// её поле std::vector<Student> требует завершённого типа.
+// Полное определение Student нужно там, где группа копируется или уничтожается
 #include "Student.h"
+
+// Полное определение Discipline нужно там, где группа копируется или уничтожается
+#include "Discipline.h"

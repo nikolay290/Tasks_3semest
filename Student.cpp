@@ -1,12 +1,32 @@
+#include "Discipline.h"
+#include "Teacher.h"
+
 #include "Student.h"
 
 #include <stdexcept>
 
 #include "FormatUtils.h"
 
+namespace {
+	/**
+	 * @brief Построить лёгкую копию группы: номер и специальность без
+	 *        списка студентов. Так студент знает свою группу, но копии
+	 *        студентов не вкладываются друг в друга бесконечно.
+	 * @param group - исходная группа
+	 * @return группа с тем же номером и специальностью без студентов
+	 */
+	Group makeLightGroup(const Group& group) {
+		const Specialty& specialty = group.getSpecialty();
+		const Department department(specialty.getDepartment().getName());
+		const Specialty lightSpecialty(specialty.getCode(), specialty.getName(), department);
+		return Group(group.getNumber(), lightSpecialty);
+	}
+}
+
 Student::Student(const std::string& fullName, const Date& birthDate, const std::string& recordBook,
-	const unsigned int course, const int id)
-	: Person(fullName, birthDate, id), recordBook(FormatUtils::trim(recordBook)), course(course) {
+	const unsigned int course, const Group& studentGroup, const int id)
+	: Person(fullName, birthDate, id), recordBook(FormatUtils::trim(recordBook)), course(course),
+	group(makeLightGroup(studentGroup)) {
 	if (this->recordBook.empty()) {
 		throw std::invalid_argument("Номер зачётной книжки не может быть пустым");
 	}
@@ -18,6 +38,12 @@ Student::Student(const std::string& fullName, const Date& birthDate, const std::
 const std::string& Student::getRecordBook() const noexcept {return recordBook;}
 
 unsigned int Student::getCourse() const noexcept {return course;}
+
+const Group& Student::getGroup() const noexcept {return group;}
+
+void Student::setGroup(const Group& newGroup) {
+	group = makeLightGroup(newGroup);
+}
 
 void Student::addMark(const double mark) {
 	if (mark < 2.0 || mark > 5.0) {
@@ -48,6 +74,7 @@ std::string Student::getRole() const {return "Студент";}
 std::string Student::getSpecificInfo() const {
 	std::string result = "Зачётная книжка: " + recordBook +
 		" | Курс: " + std::to_string(course) +
+		" | Группа: " + group.getNumber() +
 		" | Оценок: " + std::to_string(marks.size());
 	if (hasMarks()) {
 		result += " | Средний балл: " + FormatUtils::formatDecimal(getAverageMark());

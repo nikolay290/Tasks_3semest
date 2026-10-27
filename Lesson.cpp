@@ -31,6 +31,9 @@ Lesson::Lesson(const LessonType& type, const Discipline& discipline, const Group
 		throw std::invalid_argument("Лабораторную работу должны вести два разных преподавателя");
 	}
 	teachers = lessonTeachers;
+	for (const Teacher& lessonTeacher : lessonTeachers) {
+		this->discipline.addTeacher(lessonTeacher);
+	}
 }
 
 LessonType Lesson::getType() const noexcept {return type;}
